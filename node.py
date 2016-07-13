@@ -113,10 +113,10 @@ class Node(Module):
         """
         Handles a packet arrival
         """
-        # log the arrival
-        self.logger.log_arrival(self, packet_size)
         # draw packet size from the distribution
         packet_size = self.size.get_value()
+        # log the arrival
+        self.logger.log_arrival(self, packet_size)
         if self.state == Node.IDLE and len(self.queue) == 0:
             # if current state is IDLE and there are no packets in the queue, we
             # can start transmitting
