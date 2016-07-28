@@ -30,7 +30,7 @@ parser.add_option("-L", "--LIST", dest="verbose_list", default=False,
                   action="store_true", help="list the available runs with "
                                             "simulation parameters and exit")
 parser.add_option("-r", "--run", dest="run", default=0, action="store",
-                  help="run simulation number RUN [default: %default",
+                  help="run simulation number RUN [default: %default]",
                   metavar="RUN", type="int")
 parser.add_option("-c", "--config", dest="config", default="config.json",
                   action="store",
