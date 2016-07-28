@@ -26,6 +26,9 @@ parser = OptionParser(usage="usage: %prog [options]",
                                   "section")
 parser.add_option("-l", "--list", dest="list", default=False,
                   action="store_true", help="list the available runs and exit")
+parser.add_option("-L", "--LIST", dest="verbose_list", default=False,
+                  action="store_true", help="list the available runs with "
+                                            "simulation parameters and exit")
 parser.add_option("-r", "--run", dest="run", default=0, action="store",
                   help="run simulation number RUN [default: %default",
                   metavar="RUN", type="int")
@@ -48,11 +51,15 @@ simulator = sim.Sim.Instance()
 simulator.set_config(options.config, options.section)
 
 # list simulation runs and exit
-if options.list:
+if options.list or options.verbose_list:
     runs_count = simulator.get_runs_count()
     for i in range(runs_count):
-        print("./main.py -c %s -s %s -r %d" %
-              (options.config, options.section, i))
+        if options.list:
+            print("./main.py -c %s -s %s -r %d" %
+                (options.config, options.section, i))
+        else:
+            print("./main.py -c %s -s %s -r %d: %s" %
+                (options.config, options.section, i, simulator.get_params(i)))
     sys.exit(0)
 
 simulator.initialize(options.run)

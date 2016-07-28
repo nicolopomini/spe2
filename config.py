@@ -251,3 +251,16 @@ class Config:
 
     def get_output_file(self):
         return self.output_file
+
+    def get_params(self, run_number):
+        """
+        Returns a textual representation of simulation parameters for a given
+        run number
+        :param run_number: the run number
+        :returns: textual representation of parameters for run_number
+        """
+        params = ""
+        config = self.cfg[self.section]
+        for par, val in self.par_map.iteritems():
+            params += "%s: %s " % (par, str(config[par][val[run_number]]))
+        return params

@@ -207,3 +207,12 @@ class Sim:
         sys.stdout.write("[%-20s] %d%% (time = %f, total time = %f)" %
                          ('='*(perc/5), perc, (self.time), self.duration))
         sys.stdout.flush()
+
+    def get_params(self, run_number):
+        """
+        Returns a textual representation of simulation parameters for a given
+        run number
+        :param run_number: the run number
+        :returns: textual representation of parameters for run_number
+        """
+        return self.config.get_params(run_number)
