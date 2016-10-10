@@ -217,7 +217,6 @@ class Node(Module):
         assert(self.state == Node.TX)
         assert(self.current_pkt is not None)
         assert(self.current_pkt.get_id() == event.get_obj().get_id())
-        # tell the channel (and thus receivers) we are done transmitting
         self.current_pkt = None
         # the only thing to do here is to move to the WAIT state
         wait_time = self.wait_time.get_value()
