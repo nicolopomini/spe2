@@ -129,7 +129,7 @@ class Node(Module):
                 self.queue.append(packet_size)
             else:
                 # if there is no space left, we drop the packet and log
-                self.logger.log_queue_drop(self.get_id(), packet_size)
+                self.logger.log_queue_drop(self, packet_size)
         # schedule next arrival
         self.schedule_next_arrival()
 
