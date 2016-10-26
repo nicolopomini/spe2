@@ -9,7 +9,7 @@
 		// physical layer datarate in bits per second
 		"datarate" : 8000000,
 		// packet queue size. set to 0 for infinity
-		"queue" : 0,
+		"queue" : 2,
 		// packet inter-arrival distribution in 1/seconds
 		"interarrival" : [
 			{"distribution" : "exp", "lambda" : 10},
