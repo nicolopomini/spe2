@@ -117,7 +117,10 @@ class Node(Module):
         packet_size = self.size.get_value()
         # log the arrival
         self.logger.log_arrival(self, packet_size)
-        if self.state == Node.IDLE and len(self.queue) == 0:
+        if self.state == Node.IDLE:
+            # if we are in a idle state, then there must be no packets in the
+            # queue
+            assert(len(self.queue) == 0)
             # if current state is IDLE and there are no packets in the queue, we
             # can start transmitting
             self.transmit_packet(packet_size)
