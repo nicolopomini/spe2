@@ -35,7 +35,7 @@ class Log:
     def log_packet(self, source, destination, packet):
         """
         Logs the result of a packet reception.
-        :param source: source node id
+        :param source: source node
         :param destination: destination node id
         :param packet: the packet to log
         """
@@ -47,7 +47,7 @@ class Log:
     def log_queue_drop(self, source, packet_size):
         """
         Logs a queue drop
-        :param source: source node id
+        :param source: source node
         :param packet_size: size of the packet being dropped
         """
         self.log_file.write("%f,%d,%d,%d,%d\n" %
@@ -58,7 +58,7 @@ class Log:
     def log_arrival(self, source, packet_size):
         """
         Logs an arrival
-        :param source: source node id
+        :param source: source node
         :param packet_size: size of the packet being dropped
         """
         self.log_file.write("%f,%d,%d,%d,%d\n" %
