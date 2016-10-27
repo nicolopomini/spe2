@@ -13,6 +13,7 @@
 #
 # Copyright (C) 2016 Michele Segata <segata@ccs-labs.org>
 
+
 class Events:
     """
     Defines event types for the simulation
