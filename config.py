@@ -215,9 +215,17 @@ class Config:
                         # correct instance depending on the run number
                         index = self.par_map[var][self.run_number]
                         obj = config[var][index]
+                        # if the parameter value is an array, instead of taking
+                        # its value we take its index
+                        if isinstance(obj, list):
+                            obj = index
                     else:
                         # otherwise we simply take the only value it has
                         obj = config[var]
+                        # if the parameter value is an array, instead of taking
+                        # its value we take its index
+                        if isinstance(obj, list):
+                            obj = 0
 
                     # now simply perform "introspection"
                     for var in variables[1:len(variables)]:
