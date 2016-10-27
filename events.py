@@ -29,5 +29,6 @@ class Events:
     END_RX = 3
     # packet arrival event
     PACKET_ARRIVAL = 4
-    # end of waiting after reception or transmission. can start operations again
-    END_WAIT = 5
+    # end of processing after reception or transmission. can start operations
+    # again
+    END_PROC = 5

@@ -82,8 +82,8 @@ class Event:
             t = "END_TX"
         elif self.event_type == Events.END_RX:
             t = "END_RX"
-        elif self.event_type == Events.END_WAIT:
-            t = "END_WAIT"
+        elif self.event_type == Events.END_PROC:
+            t = "END_PROC"
         print("Event type: %s" % t)
         print("Source node: %d" % self.source.get_id())
         print("Destination node: %d\n" % self.destination.get_id())

@@ -46,8 +46,8 @@
 		],
 		// packet size distribution in bytes
 		"size" : {"distribution" : "unif", "min" : 32, "max" : 1460, "int" : 1},
-		// time to wait after end of reception or transmission before starting operations again
-		"wait" : {"distribution" : "const", "mean" : 0.000001},
+		// processing time after end of reception or transmission before starting operations again
+		"processing" : {"distribution" : "const", "mean" : 0.000001},
 		// position of nodes, list of x,y pairs
 		"nodes" : [
 			[[1,1], [2,3], [0, 0]]

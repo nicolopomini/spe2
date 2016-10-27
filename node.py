@@ -34,14 +34,14 @@ class Node(Module):
     INTERARRIVAL = "interarrival"
     # packet size distribution (bytes)
     SIZE = "size"
-    # wait time distribution (seconds)
-    WAIT_TIME = "wait"
+    # processing time distribution (seconds)
+    PROC_TIME = "processing"
 
     # list of possible states for this node
     IDLE = 0
     TX = 1
     RX = 2
-    WAIT = 3
+    PROC = 3
 
     def __init__(self, config, channel, x, y):
         """
@@ -57,7 +57,7 @@ class Node(Module):
         self.queue_size = config.get_param(Node.QUEUE)
         self.interarrival = Distribution(config.get_param(Node.INTERARRIVAL))
         self.size = Distribution(config.get_param(Node.SIZE))
-        self.wait_time = Distribution(config.get_param(Node.WAIT_TIME))
+        self.proc_time = Distribution(config.get_param(Node.PROC_TIME))
         # queue of packets to be sent
         self.queue = []
         # current state
@@ -91,8 +91,8 @@ class Node(Module):
             self.handle_end_rx(event)
         elif event.get_type() == Events.END_TX:
             self.handle_end_tx(event)
-        elif event.get_type() == Events.END_WAIT:
-            self.handle_end_wait(event)
+        elif event.get_type() == Events.END_PROC:
+            self.handle_end_proc(event)
         else:
             print("Node %d has received a notification for event type %d which"
                   " can't be handled", (self.get_id(), event.get_type()))
@@ -164,7 +164,7 @@ class Node(Module):
                 # collision, if we have one
                 self.current_pkt.set_state(Packet.PKT_CORRUPTED)
             # the same holds for the new incoming packet. either if we are in
-            # the RX, TX, or WAIT state, we won't be able to decode it
+            # the RX, TX, or PROC state, we won't be able to decode it
             new_packet.set_state(Packet.PKT_CORRUPTED)
         # in any case, we schedule a new event to handle the end of this frame
         end_rx = Event(self.sim.get_time() + new_packet.get_duration(),
@@ -201,13 +201,13 @@ class Node(Module):
                packet.get_id() == self.current_pkt.get_id():
                 self.current_pkt = None
             if self.receiving_count == 1:
-                # this is the only frame currently in the air, move to WAIT
+                # this is the only frame currently in the air, move to PROC
                 # before restarting operations
-                wait_time = self.wait_time.get_value()
-                wait = Event(self.sim.get_time() + wait_time, Events.END_WAIT,
+                proc_time = self.proc_time.get_value()
+                proc = Event(self.sim.get_time() + proc_time, Events.END_PROC,
                              self, self)
-                self.sim.schedule_event(wait)
-                self.state = Node.WAIT
+                self.sim.schedule_event(proc)
+                self.state = Node.PROC
         self.receiving_count = self.receiving_count - 1
         # log packet
         self.logger.log_packet(event.get_source(), self, packet)
@@ -221,19 +221,19 @@ class Node(Module):
         assert(self.current_pkt is not None)
         assert(self.current_pkt.get_id() == event.get_obj().get_id())
         self.current_pkt = None
-        # the only thing to do here is to move to the WAIT state
-        wait_time = self.wait_time.get_value()
-        wait = Event(self.sim.get_time() + wait_time, Events.END_WAIT, self,
+        # the only thing to do here is to move to the PROC state
+        proc_time = self.proc_time.get_value()
+        proc = Event(self.sim.get_time() + proc_time, Events.END_PROC, self,
                      self)
-        self.sim.schedule_event(wait)
-        self.state = Node.WAIT
+        self.sim.schedule_event(proc)
+        self.state = Node.PROC
 
-    def handle_end_wait(self, event):
+    def handle_end_proc(self, event):
         """
-        Handles the end of the waiting period, resuming operations
-        :param event: the END_WAIT event
+        Handles the end of the processing period, resuming operations
+        :param event: the END_PROC event
         """
-        assert(self.state == Node.WAIT)
+        assert(self.state == Node.PROC)
         if len(self.queue) == 0:
             # resuming operations but nothing to transmit. back to IDLE
             self.state = Node.IDLE
