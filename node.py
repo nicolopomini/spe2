@@ -224,18 +224,24 @@ class Node(Module):
             if self.receiving_count == 1:
                 # this is the only frame currently in the air, move to PROC
                 # before restarting operations
-                proc_time = self.proc_time.get_value()
-                proc = Event(self.sim.get_time() + proc_time, Events.END_PROC,
-                             self, self)
-                self.sim.schedule_event(proc)
-                self.state = Node.PROC
+                self.switch_to_proc()
                 # delete the timeout event
                 self.sim.cancel_event(self.timeout_event)
                 self.timeout_event = None
-                self.logger.log_state(self, Node.PROC)
         self.receiving_count = self.receiving_count - 1
         # log packet
         self.logger.log_packet(event.get_source(), self, packet)
+
+    def switch_to_proc(self):
+        """
+        Switches to the processing state and schedules the end_proc event
+        """
+        proc_time = self.proc_time.get_value()
+        proc = Event(self.sim.get_time() + proc_time, Events.END_PROC, self,
+                     self)
+        self.sim.schedule_event(proc)
+        self.state = Node.PROC
+        self.logger.log_state(self, Node.PROC)
 
     def handle_rx_timeout(self, event):
         """
@@ -249,12 +255,7 @@ class Node(Module):
         # meaning that we must not be receiving a packet when the timeout occurs
         assert(self.current_pkt is None)
         # the timeout forces us to switch to the PROC state
-        proc_time = self.proc_time.get_value()
-        proc = Event(self.sim.get_time() + proc_time, Events.END_PROC, self,
-                     self)
-        self.sim.schedule_event(proc)
-        self.state = Node.PROC
-        self.logger.log_state(self, Node.PROC)
+        self.switch_to_proc()
         self.timeout_event = None
 
     def handle_end_tx(self, event):
@@ -267,12 +268,7 @@ class Node(Module):
         assert(self.current_pkt.get_id() == event.get_obj().get_id())
         self.current_pkt = None
         # the only thing to do here is to move to the PROC state
-        proc_time = self.proc_time.get_value()
-        proc = Event(self.sim.get_time() + proc_time, Events.END_PROC, self,
-                     self)
-        self.sim.schedule_event(proc)
-        self.state = Node.PROC
-        self.logger.log_state(self, Node.PROC)
+        self.switch_to_proc()
 
     def handle_end_proc(self, event):
         """
