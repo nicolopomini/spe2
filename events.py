@@ -32,3 +32,5 @@ class Events:
     # end of processing after reception or transmission. can start operations
     # again
     END_PROC = 5
+    # timeout for RX state avoiding getting stuck into RX indefinitely
+    RX_TIMEOUT = 6

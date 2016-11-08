@@ -36,6 +36,8 @@ class Node(Module):
     SIZE = "size"
     # processing time distribution (seconds)
     PROC_TIME = "processing"
+    # max packet size (bytes)
+    MAXSIZE = "maxsize"
 
     # list of possible states for this node
     IDLE = 0
@@ -58,6 +60,7 @@ class Node(Module):
         self.interarrival = Distribution(config.get_param(Node.INTERARRIVAL))
         self.size = Distribution(config.get_param(Node.SIZE))
         self.proc_time = Distribution(config.get_param(Node.PROC_TIME))
+        self.maxsize = config.get_param(Node.MAXSIZE)
         # queue of packets to be sent
         self.queue = []
         # current state
@@ -72,6 +75,12 @@ class Node(Module):
         self.current_pkt = None
         # count the number of frames currently under reception
         self.receiving_count = 0
+        # timeout event used to avoid being stuck in the RX state
+        self.timeout_event = None
+        # timeout time for the rx timeout event. set as the time needed to
+        # transmit a packet of the maximum size plus a small amount of 10
+        # microseconds
+        self.timeout_time = self.maxsize * 8.0 / self.datarate + 10e-6
 
     def initialize(self):
         """
@@ -94,6 +103,8 @@ class Node(Module):
             self.handle_end_tx(event)
         elif event.get_type() == Events.END_PROC:
             self.handle_end_proc(event)
+        elif event.get_type() == Events.RX_TIMEOUT:
+            self.handle_rx_timeout(event)
         else:
             print("Node %d has received a notification for event type %d which"
                   " can't be handled", (self.get_id(), event.get_type()))
@@ -152,6 +163,12 @@ class Node(Module):
                 new_packet.set_state(Packet.PKT_RECEIVING)
                 self.current_pkt = new_packet
                 self.state = Node.RX
+                assert(self.timeout_event is None)
+                # create and schedule the RX timeout
+                self.timeout_event = Event(self.sim.get_time() +
+                                           self.timeout_time, Events.RX_TIMEOUT,
+                                           self, self, None)
+                self.sim.schedule_event(self.timeout_event)
                 self.logger.log_state(self, Node.RX)
             else:
                 # there is another signal in the air but we are IDLE. this
@@ -212,10 +229,33 @@ class Node(Module):
                              self, self)
                 self.sim.schedule_event(proc)
                 self.state = Node.PROC
+                # delete the timeout event
+                self.sim.cancel_event(self.timeout_event)
+                self.timeout_event = None
                 self.logger.log_state(self, Node.PROC)
         self.receiving_count = self.receiving_count - 1
         # log packet
         self.logger.log_packet(event.get_source(), self, packet)
+
+    def handle_rx_timeout(self, event):
+        """
+        Handles RX timeout
+        :param event: the RX_TIMEOUT event
+        """
+        # when this event happens, we can only be in RX state, otherwise
+        # something is wrong
+        assert(self.state == Node.RX)
+        # in addition, the timeout should be longer than any possible packet,
+        # meaning that we must not be receiving a packet when the timeout occurs
+        assert(self.current_pkt is None)
+        # the timeout forces us to switch to the PROC state
+        proc_time = self.proc_time.get_value()
+        proc = Event(self.sim.get_time() + proc_time, Events.END_PROC, self,
+                     self)
+        self.sim.schedule_event(proc)
+        self.state = Node.PROC
+        self.logger.log_state(self, Node.PROC)
+        self.timeout_event = None
 
     def handle_end_tx(self, event):
         """
