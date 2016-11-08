@@ -13,6 +13,7 @@
 #
 # Copyright (C) 2016 Michele Segata <segata@ccs-labs.org>
 
+
 class Packet:
     """
     Class defining a packet to be associated with a transmission event
@@ -28,10 +29,6 @@ class Packet:
     PKT_RECEIVED = 1
     # packet has been corrupted due to, for example, a collision
     PKT_CORRUPTED = 2
-    # packet has just been generated
-    PKT_GENERATED = 3
-    # packet has been dropped because there is no space in the queue
-    PKT_QUEUE_DROPPED = 4
 
     def __init__(self, size, duration):
         """

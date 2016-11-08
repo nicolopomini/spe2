@@ -62,6 +62,7 @@ class Node(Module):
         self.queue = []
         # current state
         self.state = Node.IDLE
+        self.logger.log_state(self, Node.IDLE)
         # save position
         self.x = x
         self.y = y
@@ -125,11 +126,13 @@ class Node(Module):
             # can start transmitting
             self.transmit_packet(packet_size)
             self.state = Node.TX
+            self.logger.log_state(self, Node.TX)
         else:
             # if we are either transmitting or receiving, packet must be queued
             if self.queue_size == 0 or len(self.queue) < self.queue_size:
                 # if queue size is infinite or there is still space
                 self.queue.append(packet_size)
+                self.logger.log_queue_length(self, len(self.queue))
             else:
                 # if there is no space left, we drop the packet and log
                 self.logger.log_queue_drop(self, packet_size)
@@ -149,6 +152,7 @@ class Node(Module):
                 new_packet.set_state(Packet.PKT_RECEIVING)
                 self.current_pkt = new_packet
                 self.state = Node.RX
+                self.logger.log_state(self, Node.RX)
             else:
                 # there is another signal in the air but we are IDLE. this
                 # happens if we start receiving a frame while transmitting
@@ -208,6 +212,7 @@ class Node(Module):
                              self, self)
                 self.sim.schedule_event(proc)
                 self.state = Node.PROC
+                self.logger.log_state(self, Node.PROC)
         self.receiving_count = self.receiving_count - 1
         # log packet
         self.logger.log_packet(event.get_source(), self, packet)
@@ -227,6 +232,7 @@ class Node(Module):
                      self)
         self.sim.schedule_event(proc)
         self.state = Node.PROC
+        self.logger.log_state(self, Node.PROC)
 
     def handle_end_proc(self, event):
         """
@@ -237,11 +243,14 @@ class Node(Module):
         if len(self.queue) == 0:
             # resuming operations but nothing to transmit. back to IDLE
             self.state = Node.IDLE
+            self.logger.log_state(self, Node.IDLE)
         else:
             # there is a packet ready, trasmit it
             packet_size = self.queue.pop(0)
             self.transmit_packet(packet_size)
             self.state = Node.TX
+            self.logger.log_state(self, Node.TX)
+            self.logger.log_queue_length(self, len(self.queue))
 
     def transmit_packet(self, packet_size):
         """
