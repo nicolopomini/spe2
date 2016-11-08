@@ -161,6 +161,18 @@ class Sim:
             print("No more events in the simulation queue. Terminating.")
             sys.exit(0)
 
+    def cancel_event(self, event):
+        """
+        Deletes a scheduled event from the queue
+        :param event: the event to be canceled
+        """
+        try:
+            self.queue.remove((event.get_time(), event))
+            heapq.heapify(self.queue)
+        except ValueError:
+            print("Trying to delete an event that does not exist.")
+            sys.exit(1)
+
     def run(self):
         """
         Runs the simulation.
