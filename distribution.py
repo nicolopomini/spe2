@@ -135,7 +135,7 @@ class Exp:
         Constructor
         :param mean: mean value (1/lambda)
         """
-        self.l = 1/mean
+        self.l = 1.0/mean
 
     def get_value(self):
         return random.expovariate(self.l)
