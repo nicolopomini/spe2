@@ -15,6 +15,7 @@
 
 import random
 import sys
+import math
 
 
 class Distribution:
@@ -69,10 +70,17 @@ class Distribution:
                 self.d = Uniform(config[Distribution.MIN],
                                  config[Distribution.MAX], integer)
             elif config[Distribution.DISTRIBUTION] == Distribution.EXPONENTIAL:
+                integer = False
+                try:
+                    int_distribution = config[Distribution.INT]
+                    if int_distribution == 1:
+                        integer = True
+                except Exception:
+                    integer = False
                 if Distribution.MEAN in config:
-                    self.d = Exp(config[Distribution.MEAN])
+                    self.d = Exp(config[Distribution.MEAN], integer)
                 else:
-                    self.d = Exp(1.0/config[Distribution.LAMBDA])
+                    self.d = Exp(1.0/config[Distribution.LAMBDA], integer)
             else:
                 print("Distribution error: unimplemented distribution %s",
                       config[Distribution.DISTRIBUTION])
@@ -130,12 +138,17 @@ class Exp:
     Exponential random variable
     """
 
-    def __init__(self, mean):
+    def __init__(self, mean, integer=False):
         """
         Constructor
         :param mean: mean value (1/lambda)
+        :param integer: if set to true, random values are discretized with ceil
         """
         self.l = 1.0/mean
+        self.integer = integer
 
     def get_value(self):
-        return random.expovariate(self.l)
+        if self.integer:
+            return math.ceil(random.expovariate(self.l))
+        else:
+            return random.expovariate(self.l)
