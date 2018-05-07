@@ -45,9 +45,9 @@
 			{"distribution" : "exp", "lambda" : 1510}
 		],
 		// packet size distribution in bytes
-		"size" : {"distribution" : "unif", "min" : 32, "max" : 1460, "int" : 1},
+		"size" : {"distribution" : "unif", "min" : 32, "max" : 1500, "int" : 1},
 		// maximum packet size in bytes to compute the RX timeout
-		"maxsize" : 1460,
+		"maxsize" : 1500,
 		// processing time after end of reception or transmission before starting operations again
 		"processing" : {"distribution" : "const", "mean" : 0.000001},
 		// position of nodes, list of x,y pairs
