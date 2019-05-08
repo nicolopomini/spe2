@@ -20,6 +20,8 @@ class Event:
     """
     Defines the basic structure of an event
     """
+    # counter used for assigning unique IDs to events
+    event_counter = 0
 
     def __init__(self, event_time, event_type, destination, source, obj=None):
         """
@@ -30,11 +32,32 @@ class Event:
         :param source: module generating the event
         :param obj: optional object to be attached to the event
         """
+        self.event_id = Event.event_counter
+        Event.event_counter += 1
         self.event_time = event_time
         self.event_type = event_type
         self.destination = destination
         self.source = source
         self.obj = obj
+
+    def __eq__(self, other):
+        if not isinstance(other, Event):
+            return False
+        if other.event_id == self.event_id:
+            return True
+        return False
+
+    def __lt__(self, other):
+        # if the event is the same, it is not lower than itself
+        if other.event_id == self.event_id:
+            return False
+        if self.event_time < other.event_time:
+            return True
+        if self.event_time > other.event_time:
+            return False
+        # if the time is exactly the same, the one with the lower id is the
+        # lowest of the two
+        return self.event_id < other.event_id
 
     def get_time(self):
         """

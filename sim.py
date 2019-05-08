@@ -148,7 +148,7 @@ class Sim:
                                 self.time,
                                 event.get_time()))
             sys.exit(1)
-        heapq.heappush(self.queue, (event.get_time(), event))
+        heapq.heappush(self.queue, event)
 
     def next_event(self):
         """
@@ -156,8 +156,8 @@ class Sim:
         """
         try:
             event = heapq.heappop(self.queue)
-            self.time = event[0]
-            return event[1]
+            self.time = event.event_time
+            return event
         except IndexError:
             print("No more events in the simulation queue. Terminating.")
             sys.exit(0)
@@ -168,7 +168,7 @@ class Sim:
         :param event: the event to be canceled
         """
         try:
-            self.queue.remove((event.get_time(), event))
+            self.queue.remove(event)
             heapq.heapify(self.queue)
         except ValueError:
             print("Trying to delete an event that does not exist.")
