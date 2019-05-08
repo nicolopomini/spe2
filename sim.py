@@ -13,6 +13,7 @@
 #
 # Copyright (C) 2016 Michele Segata <segata@ccs-labs.org>
 
+from __future__ import division
 import sys
 import heapq
 import random
@@ -206,7 +207,7 @@ class Sim:
         total_time = round(end_time - start_time)
         print("\nMaximum simulation time reached. Terminating.")
         print("Total simulation time: %d hours, %d minutes, %d seconds" %
-              (total_time / 3600, total_time % 3600 / 60,
+              (total_time // 3600, total_time % 3600 // 60,
                total_time % 3600 % 60))
 
     def print_percentage(self, first):
@@ -214,10 +215,10 @@ class Sim:
         if not first:
             sys.stdout.write('\r' + ERASE_LINE)
         # compute percentage
-        perc = min(100, int(math.floor(self.time/self.duration*100)))
+        perc = min(100, int(math.floor(self.time//self.duration*100)))
         # print progress bar, percentage, and current element
         sys.stdout.write("[%-20s] %d%% (time = %f, total time = %f)" %
-                         ('='*(perc/5), perc, (self.time), self.duration))
+                         ('='*(perc//5), perc, self.time, self.duration))
         sys.stdout.flush()
 
     def get_params(self, run_number):

@@ -13,6 +13,8 @@
 #
 # Copyright (C) 2016 Michele Segata <segata@ccs-labs.org>
 
+# because in python2 / is integer division, while in python3 / is float division
+from __future__ import division
 import json
 import re
 import sys
@@ -96,7 +98,8 @@ class Config:
         for p in self.cfg[self.section].keys():
             if type(self.cfg[self.section][p]) == list:
                 own_size = len(self.cfg[self.section][p])
-                par_map[p] = map((lambda x: x / prev_size % own_size), runs)
+                par_map[p] = list(map((lambda x: x // prev_size % own_size),
+                                      runs))
                 prev_size = prev_size * own_size
 
         self.runs_count = count
@@ -269,6 +272,6 @@ class Config:
         """
         params = ""
         config = self.cfg[self.section]
-        for par, val in self.par_map.iteritems():
+        for par, val in self.par_map.items():
             params += "%s: %s " % (par, str(config[par][val[run_number]]))
         return params
