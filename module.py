@@ -24,7 +24,7 @@ class Module:
         # get data logger from simulator
         self.logger = self.sim.get_logger()
 
-    def initialize():
+    def initialize(self):
         """
         Initialization method called by the simulation for each newly
         instantiated module
