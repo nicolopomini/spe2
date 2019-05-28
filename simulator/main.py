@@ -55,10 +55,10 @@ if options.list or options.verbose_list:
     runs_count = simulator.get_runs_count()
     for i in range(runs_count):
         if options.list:
-            print("./main.py -c %s -s %s -r %d" %
+            print("simulator/main.py -c %s -s %s -r %d" %
                 (options.config, options.section, i))
         else:
-            print("./main.py -c %s -s %s -r %d: %s" %
+            print("simulator/main.py -c %s -s %s -r %d: %s" %
                 (options.config, options.section, i, simulator.get_params(i)))
     sys.exit(0)
 
