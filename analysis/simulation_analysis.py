@@ -1,5 +1,5 @@
 import os
-from typing import List
+from typing import List, Dict
 import pandas as pd
 
 from simulator.log import Log
@@ -13,6 +13,8 @@ class SimulationGroupFolder:
     """
     def __init__(self, folder_path: str) -> None:
         self.folder_path = folder_path
+        if not self.folder_path.endswith("/"):
+            self.folder_path += "/"
 
     def get_file_list(self, format: str = ".csv") -> List[str]:
         """
@@ -25,6 +27,28 @@ class SimulationGroupFolder:
             if f.endswith(format):
                 files_list.append(f)
         return files_list
+
+    def group_by_seed(self, file_list: List[str]) -> list:  #sbagliata
+        """
+        Group all the simulations in a list of files by seeds, computing the average of load, throughput, drop rate and
+        collision rate
+        :param file_list: the list of simulation result files to be grouped
+        :return: a list of SimulationGroupResult
+        """
+        seed_simulation: Dict[int, List[SingleSimulation]] = {}
+        for file_name in file_list:
+            single_simulation = SingleSimulation(self.folder_path, file_name)
+            if single_simulation.seed not in seed_simulation:
+                seed_simulation[single_simulation.seed] = []
+            seed_simulation[single_simulation.seed].append(single_simulation)
+        group_results = []
+        for seed in seed_simulation:
+            avg_load = sum([s.offered_load() for s in seed_simulation[seed]]) / len(seed_simulation[seed])
+            avg_throughput = sum([s.throughput() for s in seed_simulation[seed]]) / len(seed_simulation[seed])
+            avg_collision_rate = sum([s.collision_rate() for s in seed_simulation[seed]]) / len(seed_simulation[seed])
+            avg_drop_rate = sum([s.drop_rate() for s in seed_simulation[seed]]) / len(seed_simulation[seed])
+            group_results.append(SimulationGroupResult(avg_load, avg_throughput, avg_collision_rate, avg_drop_rate))
+        return group_results
 
 
 class SingleSimulation:
@@ -39,7 +63,7 @@ class SingleSimulation:
         seed_format = info[2].split(".")
         self.inter_arrival = int(info[1])
         self.seed = int(seed_format[0])
-        df = pd.read_csv(self.folder_path + "/" + self.file_name)
+        df = pd.read_csv(self.folder_path + self.file_name)
         # pre compute all the information needed for the evaluation
         self._n = len(df['dst'].unique())
         self._simulation_time = max(df['time'])
