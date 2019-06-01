@@ -86,7 +86,7 @@ class Distribution:
                       config[Distribution.DISTRIBUTION])
         except Exception as e:
             print("Error while reading distribution parameters")
-            print(e.message)
+            print(e)
             sys.exit(1)
 
     def get_value(self):

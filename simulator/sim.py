@@ -13,17 +13,19 @@
 #
 # Copyright (C) 2016 Michele Segata <segata@ccs-labs.org>
 
-from __future__ import division
+from __future__ import division, absolute_import
 import sys
 import heapq
 import random
 import time
 import math
+
+from log import Log
 from singleton import Singleton
 from config import Config
 from channel import Channel
 from node import Node
-from log import Log
+
 
 # VT100 command for erasing content of the current prompt line
 ERASE_LINE = '\x1b[2K'
@@ -32,7 +34,7 @@ ERASE_LINE = '\x1b[2K'
 @Singleton
 class Sim:
     """
-    Main simulator class
+    Main simu class
     """
 
     # name of the section in the configuration file that includes all simulation
@@ -97,7 +99,7 @@ class Sim:
         self.run_number = run_number
         if run_number >= self.config.get_runs_count():
             print("Simulation error. Run number %d does not exist. Please run "
-                  "the simulator with the --list option to list all possible "
+                  "the simu with the --list option to list all possible "
                   "runs" % run_number)
             sys.exit(1)
         self.config.set_run_number(run_number)

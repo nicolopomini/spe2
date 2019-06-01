@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 from typing import List
 
 import matplotlib.pyplot as plt
@@ -7,7 +9,7 @@ class Plotter:
     """
     Class that manage the creation of the various plots
     """
-    BASE_DIR = "../results/"
+    BASE_DIR = "results/"
     THROUGHPUT_PLOT_NAME = "throughput.pdf"
     DROP_RATE_PLOT_NAME = "drop.pdf"
     COLLISION_RATE_PLOT_NAME = "collision.pdf"
@@ -24,7 +26,7 @@ class Plotter:
         plt.xlabel("Total offered load [Mbps]")
         plt.ylabel("Throughput at receiver [Mbps]")
         plt.title("Throughput")
-        plt.legend(loc='upper right')
+        plt.legend(loc='best')
         plt.savefig(Plotter.BASE_DIR + Plotter.THROUGHPUT_PLOT_NAME)
 
     @staticmethod
@@ -39,7 +41,7 @@ class Plotter:
         plt.xlabel("Total offered load [Mbps]")
         plt.ylabel("Packet drop rate at the sender")
         plt.title("Packet drop rate")
-        plt.legend(loc='upper left')
+        plt.legend(loc='best')
         plt.savefig(Plotter.BASE_DIR + Plotter.DROP_RATE_PLOT_NAME)
 
     @staticmethod
@@ -54,5 +56,5 @@ class Plotter:
         plt.xlabel("Total offered load [Mbps]")
         plt.ylabel("Packet collision rate at the receiver")
         plt.title("Collision rate")
-        plt.legend(loc='bottom right')
+        plt.legend(loc='best')
         plt.savefig(Plotter.BASE_DIR + Plotter.COLLISION_RATE_PLOT_NAME)

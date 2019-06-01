@@ -14,7 +14,7 @@
 # Copyright (C) 2016 Michele Segata <segata@ccs-labs.org>
 
 # because in python2 / is integer division, while in python3 / is float division
-from __future__ import division
+from __future__ import division, absolute_import
 import json
 import re
 import sys
@@ -45,7 +45,7 @@ class Config:
             self.cfg = json.loads(json_content)
         except Exception as e:
             print("Unable to parse " + self.config_file)
-            print(e.message)
+            print(e)
             sys.exit(1)
         if section not in self.cfg:
             print("Error: the file %s does not contain section %s",

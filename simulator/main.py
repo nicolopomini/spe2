@@ -14,7 +14,7 @@
 #
 # Copyright (C) 2016 Michele Segata <segata@ccs-labs.org>
 
-
+from __future__ import absolute_import
 from optparse import OptionParser
 import sys
 import sim

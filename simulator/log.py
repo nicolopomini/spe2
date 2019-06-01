@@ -12,7 +12,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # Copyright (C) 2016 Michele Segata <segata@ccs-labs.org>
-
+from __future__ import absolute_import
 import sim
 from packet import Packet
 

@@ -12,7 +12,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # Copyright (C) 2016 Michele Segata <segata@ccs-labs.org>
-
+from __future__ import absolute_import
 import math
 import copy
 from module import Module
@@ -36,7 +36,7 @@ class Channel(Module):
     def __init__(self, config):
         """
         Constructor.
-        :param config: the set of configs loaded by the simulator to obtain, for
+        :param config: the set of configs loaded by the simu to obtain, for
         example, the communication range. The parameter is an instance of the
         Config class
         """

@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 import sys
 import sim
 
@@ -21,7 +23,7 @@ class Module:
         # auto assign module id
         self.module_id = Module.__modules_count
         Module.__modules_count = Module.__modules_count + 1
-        # get data logger from simulator
+        # get data logger from simu
         self.logger = self.sim.get_logger()
 
     def initialize(self):

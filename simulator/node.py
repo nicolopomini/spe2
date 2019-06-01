@@ -12,6 +12,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # Copyright (C) 2016 Michele Segata <segata@ccs-labs.org>
+from __future__ import absolute_import
 
 import sys
 from module import Module
@@ -48,7 +49,7 @@ class Node(Module):
     def __init__(self, config, channel, x, y):
         """
         Constructor.
-        :param config: the set of configs loaded by the simulator
+        :param config: the set of configs loaded by the simu
         :param channel: the channel to which frames are sent
         :param x: x position
         :param y: y position
