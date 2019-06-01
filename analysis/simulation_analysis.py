@@ -28,26 +28,31 @@ class SimulationGroupFolder:
                 files_list.append(f)
         return files_list
 
-    def group_by_seed(self, file_list: List[str]) -> list:  #sbagliata
+    def group_by_inter_arrival(self, file_list: List[str]) -> dict:
         """
         Group all the simulations in a list of files by seeds, computing the average of load, throughput, drop rate and
         collision rate
         :param file_list: the list of simulation result files to be grouped
-        :return: a list of SimulationGroupResult
+        :return: a dict, with keys the inter-arrival time, and values a list of SimulationGroupResult
         """
-        seed_simulation: Dict[int, List[SingleSimulation]] = {}
+        # group by inter-arrival time and seed
+        inter_arrival_group: Dict[int, Dict[int, SingleSimulation]] = {}
         for file_name in file_list:
             single_simulation = SingleSimulation(self.folder_path, file_name)
-            if single_simulation.seed not in seed_simulation:
-                seed_simulation[single_simulation.seed] = []
-            seed_simulation[single_simulation.seed].append(single_simulation)
-        group_results = []
-        for seed in seed_simulation:
-            avg_load = sum([s.offered_load() for s in seed_simulation[seed]]) / len(seed_simulation[seed])
-            avg_throughput = sum([s.throughput() for s in seed_simulation[seed]]) / len(seed_simulation[seed])
-            avg_collision_rate = sum([s.collision_rate() for s in seed_simulation[seed]]) / len(seed_simulation[seed])
-            avg_drop_rate = sum([s.drop_rate() for s in seed_simulation[seed]]) / len(seed_simulation[seed])
-            group_results.append(SimulationGroupResult(avg_load, avg_throughput, avg_collision_rate, avg_drop_rate))
+            # inter arrival
+            if single_simulation.inter_arrival not in inter_arrival_group:
+                inter_arrival_group[single_simulation.inter_arrival] = {}
+            # seed
+            inter_arrival_group[single_simulation.inter_arrival][single_simulation.seed] = single_simulation
+        # create and fill a dictionary, with keys the inter-arrival times, and values the aggregation over seeds of the simulations
+        group_results: Dict[int, SimulationGroupResult] = {}
+        for inter_arrival in inter_arrival_group:
+            simulations = inter_arrival_group[inter_arrival]
+            load = simulations[next(iter(simulations))].offered_load()
+            avg_throughput = sum([simulations[s].throughput() for s in simulations]) / len(simulations)
+            avg_collisions = sum([simulations[s].collision_rate() for s in simulations]) / len(simulations)
+            avg_drop = sum([simulations[s].drop_rate() for s in simulations]) / len(simulations)
+            group_results[inter_arrival] = SimulationGroupResult(load, avg_throughput, avg_collisions, avg_drop)
         return group_results
 
 
@@ -58,13 +63,15 @@ class SingleSimulation:
     """
     def __init__(self, folder_path: str, file_name: str) -> None:
         self.folder_path = folder_path
+        if not self.folder_path.endswith("/"):
+            self.folder_path += "/"
         self.file_name = file_name
         info = self.file_name.split("_")
         seed_format = info[2].split(".")
         self.inter_arrival = int(info[1])
         self.seed = int(seed_format[0])
         df = pd.read_csv(self.folder_path + self.file_name)
-        # pre compute all the information needed for the evaluation
+        #  pre compute all the information needed for the evaluation
         self._n = len(df['dst'].unique())
         self._simulation_time = max(df['time'])
         self._received = len(df.loc[df["event"] == Log.LOG_RECEIVED])
@@ -111,3 +118,6 @@ class SimulationGroupResult:
         self.throughput = throughput
         self.collision_rate = collision_rate
         self.drop_rate = drop_rate
+
+    def __repr__(self) -> str:
+        return "(Load: %f, throughput: %f, collision rate: %f, drop rate: %f)" % (self.load, self.throughput, self.collision_rate, self.drop_rate)
