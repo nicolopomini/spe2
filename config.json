@@ -1,7 +1,7 @@
 {
 	"simulation" : {
 		// seed(s) to initialize PRNGs
-		"seed" : [0, 2],
+		"seed" : [0],
 		// duration of each simulation in seconds
 		"duration" : 30,
 		// communication range in meters
@@ -12,7 +12,9 @@
 		"queue" : 2,
 		// packet inter-arrival distribution in 1/seconds
 		"interarrival" : [
-            {"distribution" : "exp", "lambda" : 500}
+            {"distribution" : "exp", "lambda" : 500},
+            {"distribution" : "exp", "lambda" : 1000},
+            {"distribution" : "exp", "lambda" : 1500}
 		],
 		// packet size distribution in bytes
 		"size" : {"distribution" : "unif", "min" : 32, "max" : 1500, "int" : 1},

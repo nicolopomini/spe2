@@ -38,6 +38,9 @@ parser.add_option("-c", "--config", dest="config", default="config.json",
 parser.add_option("-s", "--section", dest="section", default="simulation",
                   action="store",
                   help="section inside configuration file [default: %default]")
+parser.add_option("-p", "--protocol", dest="protocol", default="aloha", action="store",
+                  help="Protocol for sending packets. It can be either Aloha (use 'aloha'), " +
+                       "or Trivial Carrier Sensing (use 'trivial')")
 
 # parse options
 (options, args) = parser.parse_args()
@@ -48,7 +51,7 @@ if options.config == "" or options.section == "":
     sys.exit(1)
 
 simulator = sim.Sim.Instance()
-simulator.set_config(options.config, options.section)
+simulator.set_config(options.config, options.section, options.protocol)
 
 # list simulation runs and exit
 if options.list or options.verbose_list:
@@ -56,10 +59,10 @@ if options.list or options.verbose_list:
     for i in range(runs_count):
         if options.list:
             print("simulator/main.py -c %s -s %s -r %d" %
-                (options.config, options.section, i))
+                  (options.config, options.section, i))
         else:
             print("simulator/main.py -c %s -s %s -r %d: %s" %
-                (options.config, options.section, i, simulator.get_params(i)))
+                  (options.config, options.section, i, simulator.get_params(i)))
     sys.exit(0)
 
 simulator.initialize(options.run)

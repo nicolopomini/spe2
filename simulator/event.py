@@ -107,6 +107,8 @@ class Event:
             t = "END_RX"
         elif self.event_type == Events.END_PROC:
             t = "END_PROC"
+        elif self.event_type == Events.SENSE_CHANNEL:
+            t = "SENSE_CHANNEL"
         print("Event type: %s" % t)
         print("Source node: %d" % self.source.get_id())
         print("Destination node: %d\n" % self.destination.get_id())
