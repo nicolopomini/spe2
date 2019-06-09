@@ -1,9 +1,5 @@
-from __future__ import absolute_import
-
-from typing import Dict, List
-
 from plot import Plotter
-from simulation_analysis import SimulationGroupFolder, SimulationGroupResult
+from simulation_analysis import SimulationGroupFolder
 
 
 class AnalysisManager:
@@ -17,16 +13,16 @@ class AnalysisManager:
     TRIVIAL_DISK_FOLDER = "trivial_disk/"
     TRIVIAL_PROB_FOLDER = "trivial_prob/"
 
-    def __init__(self, base_folder: str = "raw_data/") -> None:
+    def __init__(self, base_folder="raw_data/"):
         self.base_folder = base_folder
         if not self.base_folder.endswith("/"):
             self.base_folder += "/"
 
-    def _analyze_sub_folder(self, raw_data_sub_folder: str):
+    def _analyze_sub_folder(self, raw_data_sub_folder):
         folder_manager = SimulationGroupFolder(self.base_folder + raw_data_sub_folder)
         file_list = folder_manager.get_file_list()
         # results of a single type of simulaton, grouped by inter-arrival
-        results_by_inter_arrival: Dict[int, SimulationGroupResult] = folder_manager.group_by_inter_arrival(file_list)
+        results_by_inter_arrival = folder_manager.group_by_inter_arrival(file_list)
         ordered_keys = sorted(results_by_inter_arrival.keys())
         loads = []
         throughputs = []
@@ -60,13 +56,13 @@ class AnalysisManager:
 
 class SettingResult:
 
-    def __init__(self, load: List[float], throughput: List[float], collision_rate: List[float], drop_rate: List[float]) -> None:
+    def __init__(self, load, throughput, collision_rate, drop_rate):
         self.load = load
         self.throughput = throughput
         self.collision_rate = collision_rate
         self.drop_rate = drop_rate
 
-    def __repr__(self) -> str:
+    def __repr__(self):
         return "Setting result:\nLoad: %s\nThroughput: %s\nColl. rate: %s\nDrop rate %s" % (
             str(self.load), str(self.throughput), str(self.collision_rate), str(self.drop_rate)
         )

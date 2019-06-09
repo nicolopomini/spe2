@@ -1,7 +1,3 @@
-from __future__ import absolute_import
-
-from typing import List
-
 import matplotlib.pyplot as plt
 
 
@@ -15,8 +11,8 @@ class Plotter:
     COLLISION_RATE_PLOT_NAME = "collision.pdf"
 
     @staticmethod
-    def plot_throughput(load: List[float], aloha_disk_throughput: List[float], aloha_prob_throughput: List[float],
-                        carrier_disk_throughput: List[float], carrier_prob_throughput: List[float]):
+    def plot_throughput(load, aloha_disk_throughput, aloha_prob_throughput, carrier_disk_throughput,
+                        carrier_prob_throughput):
         plt.figure()
         plt.grid()
         plt.plot(load, aloha_disk_throughput, "o-", label="Aloha with disk reception", color="r")
@@ -30,8 +26,7 @@ class Plotter:
         plt.savefig(Plotter.BASE_DIR + Plotter.THROUGHPUT_PLOT_NAME)
 
     @staticmethod
-    def plot_drop_rate(load: List[float], aloha_disk_drop: List[float], aloha_prob_drop: List[float],
-                       carrier_disk_drop: List[float], carrier_prob_drop: List[float]):
+    def plot_drop_rate(load, aloha_disk_drop, aloha_prob_drop, carrier_disk_drop, carrier_prob_drop):
         plt.figure()
         plt.grid()
         plt.plot(load, aloha_disk_drop, "o-", label="Aloha with disk reception", color="r")
@@ -45,8 +40,7 @@ class Plotter:
         plt.savefig(Plotter.BASE_DIR + Plotter.DROP_RATE_PLOT_NAME)
 
     @staticmethod
-    def plot_collision_rate(load: List[float], aloha_disk_coll: List[float], aloha_prob_coll: List[float],
-                            carrier_disk_coll: List[float], carrier_prob_coll: List[float]):
+    def plot_collision_rate(load, aloha_disk_coll, aloha_prob_coll, carrier_disk_coll, carrier_prob_coll):
         plt.figure()
         plt.grid()
         plt.plot(load, aloha_disk_coll, "o-", label="Aloha with disk reception", color="r")
