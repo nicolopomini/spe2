@@ -186,16 +186,16 @@ class Node(Module):
                 # are not able to detect the new one and set that to corrupted
                 new_packet.set_state(Packet.PKT_CORRUPTED)
         # nel caso volessi cambiare diagramma a stati, commentare questo elif
-        elif self.state == Node.WC and self.receiving_count == 0:
+        #elif self.state == Node.WC and self.receiving_count == 0:
             # in this case, the protocol must be carrier sensing
             # and the node must have programmed a sensing event
             # since the node is about to exit the WC state, the sensing event is cancelled
-            assert (self.protocol == Node.TRIVIAL_CARRIER_SENSING)
-            assert (self.sense_event is not None)
-            self.sim.cancel_event(self.sense_event)
-            self.sense_event = None
+        #    assert (self.protocol == Node.TRIVIAL_CARRIER_SENSING)
+        #    assert (self.sense_event is not None)
+        #    self.sim.cancel_event(self.sense_event)
+        #    self.sense_event = None
             # finally, the packet is received
-            self.receive_packet(new_packet)
+        #    self.receive_packet(new_packet)
         else:
             # node is either receiving or transmitting
             if self.state == Node.RX and self.current_pkt is not None:
