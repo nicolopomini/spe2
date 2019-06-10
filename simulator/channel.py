@@ -33,12 +33,13 @@ class Channel(Module):
     # speed of light in m/s, used to compute propagation delay
     SOL = 299792458.0
 
-    def __init__(self, config):
+    def __init__(self, config, use_realistic_propagation):
         """
         Constructor.
         :param config: the set of configs loaded by the simu to obtain, for
         example, the communication range. The parameter is an instance of the
         Config class
+        :param use_realistic_propagation: True to use the realistic propagation
         """
         # call superclass constructor
         Module.__init__(self)
@@ -48,6 +49,8 @@ class Channel(Module):
         self.nodes = []
         # map of neighbors that maps each node id to the list of its neighbors
         self.neighbors = {}
+        # set propagation model
+        self.use_realistic_propagation = use_realistic_propagation
 
     def register_node(self, node):
         """
@@ -87,7 +90,7 @@ class Channel(Module):
         # save neighbors for the new node in the map
         self.neighbors[new_node.get_id()] = new_node_neighbors
 
-    def start_transmission(self, source_node, packet=None):
+    def start_transmission(self, source_node, packet):
         """
         Begins transmission of a frame on the channel, notifying all neighbors
         about such event
@@ -98,6 +101,9 @@ class Channel(Module):
             # compute propagation delay: distance / speed of light
             propagation_delay = self.distance(source_node, neighbor) /\
                                 Channel.SOL
+            if self.use_realistic_propagation:
+                distance = self.distance(source_node, neighbor)
+                packet.correct_reception_probability = 1 - pow(distance / self.range, 1.0 / 3.0)
             # generate and schedule START_RX event at receiver
             # be sure to make a copy of the packet and not pass the same
             # reference to multiple nodes, as they will process the packet in

@@ -41,6 +41,8 @@ parser.add_option("-s", "--section", dest="section", default="simulation",
 parser.add_option("-p", "--protocol", dest="protocol", default="aloha", action="store",
                   help="Protocol for sending packets. It can be either Aloha (use 'aloha'), " +
                        "or Trivial Carrier Sensing (use 'trivial')")
+parser.add_option("-R", "--realistic_propagation", dest="propagation", default=False, action="store_true",
+                  help="Use realistic propagation")
 
 # parse options
 (options, args) = parser.parse_args()
@@ -51,7 +53,7 @@ if options.config == "" or options.section == "":
     sys.exit(1)
 
 simulator = sim.Sim.Instance()
-simulator.set_config(options.config, options.section, options.protocol)
+simulator.set_config(options.config, options.section, options.protocol, options.propagation)
 
 # list simulation runs and exit
 if options.list or options.verbose_list:

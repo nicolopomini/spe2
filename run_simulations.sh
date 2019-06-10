@@ -27,7 +27,7 @@ if [ ! -d "raw_data/aloha_prob" ]; then
 fi
 while IFS= read -r line
 do
-  python $line $protocol
+  python $line $protocol -R
 done < "simulation_list.txt"
 mv *.csv raw_data/aloha_prob
 
@@ -49,7 +49,7 @@ if [ ! -d "raw_data/trivial_prob" ]; then
 fi
 while IFS= read -r line
 do
-  python $line $protocol
+  python $line $protocol -R
 done < "simulation_list.txt"
 mv *.csv raw_data/trivial_prob
 

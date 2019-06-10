@@ -69,13 +69,16 @@ class Sim:
         self.section = ""
         # sending protocol
         self.protocol = "aloha"
+        # reception model
+        self.use_realistic_propagation = False
 
-    def set_config(self, config_file, section, protocol):
+    def set_config(self, config_file, section, protocol, use_realistic_propagation):
         """
         Set config file and section
         :param config_file: file name of the config file
         :param section: the section within the config file
         :param protocol: sending protocol. Either "aloha" or "trivial"
+        :param use_realistic_propagation: set to True to use a realistic reception model, False to use the standard
         """
         self.config_file = config_file
         self.section = section
@@ -85,6 +88,8 @@ class Sim:
         self.protocol = protocol
         # instantiate config manager
         self.config = Config(self.config_file, self.section)
+        # set reception model
+        self.use_realistic_propagation = use_realistic_propagation
 
     def get_runs_count(self):
         """
@@ -121,7 +126,7 @@ class Sim:
         self.seed = self.config.get_param(self.PAR_SEED)
         random.seed(self.seed)
         # instantiate the channel
-        self.channel = Channel(self.config)
+        self.channel = Channel(self.config, self.use_realistic_propagation)
         # instantiate all the nodes
         positions = self.config.get_param(self.PAR_NODES)
         for p in positions:

@@ -16,7 +16,7 @@ from __future__ import absolute_import
 
 import sys
 from module import Module
-from distribution import Distribution
+from distribution import Distribution, Uniform
 from event import Event
 from events import Events
 from packet import Packet
@@ -227,9 +227,16 @@ class Node(Module):
             assert(self.state == Node.RX)
         if self.state == Node.RX:
             if packet.get_state() == Packet.PKT_RECEIVING:
-                # the packet is not in a corrupted state: we succesfully
-                # received it
-                packet.set_state(Packet.PKT_RECEIVED)
+                # using the realistic propagation: extract a random number between 0 and 1 and decide what to do
+                random = Uniform(0, 1).get_value()
+                if random <= packet.correct_reception_probability:
+                    # standard reception
+                    # the packet is not in a corrupted state: we succesfully
+                    # received it
+                    # in case standard reception, packet.correct_reception_probability = 1
+                    packet.set_state(Packet.PKT_RECEIVED)
+                else:
+                    packet.set_state(Packet.PKT_CORRUPTED_BY_CHANNEL)
                 # just to be sure: we can only correctly receive the packet we
                 # were trying to decode
                 assert(packet.get_id() == self.current_pkt.get_id())

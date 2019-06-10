@@ -75,6 +75,7 @@ class SingleSimulation:
         self._simulation_time = max(df['time'])
         self._received = len(df.loc[df["event"] == Log.LOG_RECEIVED])
         self._corrupted = len(df.loc[df["event"] == Log.LOG_CORRUPTED])
+        self._corrupted_by_channel = len(df.loc[df["event"] == Log.LOG_CORRUPTED_BY_CHANNEL])
         self._dropped = len(df.loc[df["event"] == Log.LOG_QUEUE_DROPPED])
         self._generated = len(df.loc[df["event"] == Log.LOG_GENERATED])
 
@@ -97,7 +98,7 @@ class SingleSimulation:
         #Corrupted packets / all the incoming packets
         :return: the collision rate
         """
-        return self._corrupted / (self._corrupted + self._received)
+        return self._corrupted / (self._corrupted + self._received + self._corrupted_by_channel)
 
     def drop_rate(self):
         """
