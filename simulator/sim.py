@@ -49,6 +49,7 @@ class Sim:
     # sending protocol values
     ALOHA = "aloha"
     TRIVIAL_CARRIER_SENSING = "trivial"
+    SIMPLE_CARRIER_SENSING = "simple"
 
     def __init__(self):
         """
@@ -71,25 +72,33 @@ class Sim:
         self.protocol = "aloha"
         # reception model
         self.use_realistic_propagation = False
+        self.persistence = None
 
-    def set_config(self, config_file, section, protocol, use_realistic_propagation):
+    def set_config(self, config_file, section, protocol, use_realistic_propagation, persistence):
         """
         Set config file and section
         :param config_file: file name of the config file
         :param section: the section within the config file
         :param protocol: sending protocol. Either "aloha" or "trivial"
         :param use_realistic_propagation: set to True to use a realistic reception model, False to use the standard
+        :param persistence: persistence probability, to use only in case of Simple Carrier Sensing
         """
         self.config_file = config_file
         self.section = section
-        if protocol != self.ALOHA and protocol != self.TRIVIAL_CARRIER_SENSING:
-            raise ValueError("Protocol %s not recognized. Use either '%s' or '%s'" %
-                             (protocol, self.ALOHA, self.TRIVIAL_CARRIER_SENSING))
+        if protocol != self.ALOHA and protocol != self.TRIVIAL_CARRIER_SENSING and \
+                protocol != self.SIMPLE_CARRIER_SENSING:
+            raise ValueError("Protocol %s not recognized. Use either '%s', %s or '%s'" %
+                             (protocol, self.ALOHA, self.TRIVIAL_CARRIER_SENSING, self.SIMPLE_CARRIER_SENSING))
         self.protocol = protocol
         # instantiate config manager
         self.config = Config(self.config_file, self.section)
         # set reception model
         self.use_realistic_propagation = use_realistic_propagation
+        self.persistence = persistence
+        # in case of simple carrier sensing, the persistence must be set
+        if self.protocol == self.SIMPLE_CARRIER_SENSING and self.persistence is None:
+            print("With Simple Carrier Sensing, the persistence must be set")
+            sys.exit(1)
 
     def get_runs_count(self):
         """
@@ -132,7 +141,7 @@ class Sim:
         for p in positions:
             x = p[0]
             y = p[1]
-            node = Node(self.config, self.channel, x, y, self.protocol)
+            node = Node(self.config, self.channel, x, y, self.protocol, self.persistence)
             # let the channel know about this node
             self.channel.register_node(node)
             node.initialize()

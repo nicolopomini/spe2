@@ -40,9 +40,12 @@ parser.add_option("-s", "--section", dest="section", default="simulation",
                   help="section inside configuration file [default: %default]")
 parser.add_option("-p", "--protocol", dest="protocol", default="aloha", action="store",
                   help="Protocol for sending packets. It can be either Aloha (use 'aloha'), " +
-                       "or Trivial Carrier Sensing (use 'trivial')")
+                       "Trivial Carrier Sensing (use 'trivial'), or Simple Carrier Sensing (use 'simple')." +
+                       "In case of Simple Carrier Sensing, the persistence -P must be set.")
 parser.add_option("-R", "--realistic_propagation", dest="propagation", default=False, action="store_true",
                   help="Use realistic propagation")
+parser.add_option("-P", "--persistence", type=float, dest="persistence", default=None, action="store",
+                  help="Set persistence of the Simple Carrier Sensing")
 
 # parse options
 (options, args) = parser.parse_args()
@@ -53,7 +56,7 @@ if options.config == "" or options.section == "":
     sys.exit(1)
 
 simulator = sim.Sim.Instance()
-simulator.set_config(options.config, options.section, options.protocol, options.propagation)
+simulator.set_config(options.config, options.section, options.protocol, options.propagation, options.persistence)
 
 # list simulation runs and exit
 if options.list or options.verbose_list:

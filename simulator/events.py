@@ -36,3 +36,5 @@ class Events:
     RX_TIMEOUT = 6
     # sense the channel
     SENSE_CHANNEL = 7
+    # carrier sense
+    CARRIER_SENSE = 8

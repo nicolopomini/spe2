@@ -16,7 +16,7 @@ from __future__ import absolute_import
 
 import sys
 from module import Module
-from distribution import Distribution, Uniform
+from distribution import Distribution, Uniform, Exp
 from event import Event
 from events import Events
 from packet import Packet
@@ -42,6 +42,7 @@ class Node(Module):
     # available protocols
     ALOHA = "aloha"
     TRIVIAL_CARRIER_SENSING = "trivial"
+    SIMPLE_CARRIER_SENSING = "simple"
     # sense time
     SENSE_TIME = 50e-6
 
@@ -51,8 +52,9 @@ class Node(Module):
     RX = 2
     PROC = 3
     WC = 4
+    WT = 5
 
-    def __init__(self, config, channel, x, y, protocol):
+    def __init__(self, config, channel, x, y, protocol, persistence):
         """
         Constructor.
         :param config: the set of configs loaded by the simu
@@ -60,6 +62,7 @@ class Node(Module):
         :param x: x position
         :param y: y position
         :param protocol: the protocol to use. Either aloha or trivial carrier sensing
+        :param persistence: persistence probability, to use only in case of Simple Carrier Sensing
         """
         Module.__init__(self)
         # load configuration parameters
@@ -89,11 +92,22 @@ class Node(Module):
         # transmit a packet of the maximum size plus a small amount of 10
         # microseconds
         self.timeout_time = self.maxsize * 8.0 / self.datarate + 10e-6
-        if protocol != Node.ALOHA and protocol != Node.TRIVIAL_CARRIER_SENSING:
+        if protocol != Node.ALOHA and protocol != Node.TRIVIAL_CARRIER_SENSING and \
+                protocol != Node.SIMPLE_CARRIER_SENSING:
             raise ValueError("Unrecognized protocol %s" % protocol)
         self.protocol = protocol
         # event used to sense the channel in case of carrier sensing
         self.sense_event = None
+        # persistence prob
+        self.persistence = persistence
+        # in case of simple carrier sensing, the persistence must be set
+        assert (self.protocol != self.SIMPLE_CARRIER_SENSING or self.persistence is not None)
+        # also, persistence must be between 0 and 1
+        assert (self.persistence is None or (0.0 <= self.persistence <= 1.0))
+        # carrier sense event
+        self.carrier_sense_event = None
+        # random choice for carrier sense
+        self.random = None
 
     def initialize(self):
         """
@@ -120,6 +134,8 @@ class Node(Module):
             self.handle_rx_timeout(event)
         elif event.get_type() == Events.SENSE_CHANNEL:
             self.handle_sense(event)
+        elif event.get_type() == Events.CARRIER_SENSE:
+            self.handle_carrier_sense_event(event)
         else:
             print("Node %d has received a notification for event type %d which"
                   " can't be handled", (self.get_id(), event.get_type()))
@@ -185,17 +201,6 @@ class Node(Module):
                 # (we are not doing carrier sensing). In this case we assume we
                 # are not able to detect the new one and set that to corrupted
                 new_packet.set_state(Packet.PKT_CORRUPTED)
-        # nel caso volessi cambiare diagramma a stati, commentare questo elif
-        #elif self.state == Node.WC and self.receiving_count == 0:
-            # in this case, the protocol must be carrier sensing
-            # and the node must have programmed a sensing event
-            # since the node is about to exit the WC state, the sensing event is cancelled
-        #    assert (self.protocol == Node.TRIVIAL_CARRIER_SENSING)
-        #    assert (self.sense_event is not None)
-        #    self.sim.cancel_event(self.sense_event)
-        #    self.sense_event = None
-            # finally, the packet is received
-        #    self.receive_packet(new_packet)
         else:
             # node is either receiving or transmitting
             if self.state == Node.RX and self.current_pkt is not None:
@@ -219,6 +224,7 @@ class Node(Module):
         """
         # in case of carrier sensing, the node can't be in idle state. carrier sensing => not idle
         assert (self.protocol != Node.TRIVIAL_CARRIER_SENSING or self.state != Node.IDLE)
+        assert (self.protocol != Node.SIMPLE_CARRIER_SENSING or self.state != Node.IDLE)
         packet = event.get_obj()
         # if the packet that ends is the one that we are trying to receive, but
         # we are not in the RX state, then something is very wrong
@@ -304,9 +310,21 @@ class Node(Module):
         """
         assert(self.state == Node.PROC)
         if self.protocol == Node.TRIVIAL_CARRIER_SENSING and self.receiving_count > 0:
-            # with carrier sense, in case the node is receiving something, it must wait
+            # with trivial carrier sense, in case the node is receiving something, it must wait
             self.state = Node.WC
             self.logger.log_state(self, Node.WC)
+            self.schedule_sense()
+        elif self.protocol == Node.SIMPLE_CARRIER_SENSING and self.receiving_count > 0:
+            # simple carrier sense: pick random number and decide what to do
+            self.random = Uniform(0, 1).get_value()
+            if self.random >= self.persistence:
+                # do carrier sensing
+                self.state = Node.WT
+                self.logger.log_state(self, Node.WT)
+            else:
+                # transmit as soon as the channel gets free
+                self.state = Node.WC
+                self.logger.log_state(self, Node.WC)
             self.schedule_sense()
         elif len(self.queue) == 0:
             # resuming operations but nothing to transmit. back to IDLE
@@ -350,15 +368,28 @@ class Node(Module):
         """
         Wrapper to schedule the next sense of the channel.
         To sense the channel it must hold:
-        1. using the trivial carrier sensing protocol
+        1. using any carrier sensing protocol
         2. being in the state of waiting the channel to be free
         3. No other sense event must be scheduled
         """
-        assert (self.protocol == Node.TRIVIAL_CARRIER_SENSING)
-        assert (self.state == Node.WC)
+        assert (self.protocol == Node.TRIVIAL_CARRIER_SENSING or self.protocol == Node.SIMPLE_CARRIER_SENSING)
+        assert (self.state == Node.WC or self.state == Node.WT)
         assert (self.sense_event is None)
         self.sense_event = Event(self.sim.get_time() + Node.SENSE_TIME, Events.SENSE_CHANNEL, self, self)
         self.sim.schedule_event(self.sense_event)
+
+    def schedule_next_carrier_sense(self):
+        """
+        Schedule the transmission using carrier sensing, after a random time
+        """
+        # we must be in simple carrier sensing, waiting for the channel and without a sense event scheduled
+        assert (self.protocol == Node.SIMPLE_CARRIER_SENSING)
+        assert (self.state == Node.WT)
+        assert (self.sense_event is None)
+        assert (self.carrier_sense_event is None)
+        event_time = Exp(10 * self.maxsize * 8.0 / self.datarate).get_value()
+        self.carrier_sense_event = Event(self.sim.get_time() + event_time, Events.CARRIER_SENSE, self, self)
+        self.sim.schedule_event(self.carrier_sense_event)
 
     def handle_transmission(self):
         """
@@ -392,18 +423,57 @@ class Node(Module):
         """
         Handle the sensing of the channel
         """
-        # node must be in carrier sensing, and in WC state
-        assert (self.protocol == Node.TRIVIAL_CARRIER_SENSING)
-        assert (self.state == Node.WC)
+        # node must be in any carrier sensing, and in WC or WT state
+        assert (self.protocol == Node.TRIVIAL_CARRIER_SENSING or self.protocol == Node.SIMPLE_CARRIER_SENSING)
+        assert (self.state == Node.WC or self.state == Node.WT)
         # remove previous sense event
         self.sense_event = None
-        if self.receiving_count > 0:
-            # somebody else is still transmitting, need to schedule a new sense
-            self.schedule_sense()
-        elif len(self.queue) == 0:
-            # nothing to transmit, go idle
-            self.state = Node.IDLE
-            self.logger.log_state(self, Node.IDLE)
+        if self.state == Node.WC:
+            if self.receiving_count > 0:
+                # somebody else is still transmitting, need to schedule a new sense
+                self.schedule_sense()
+            elif len(self.queue) == 0:
+                # nothing to transmit, go idle
+                self.state = Node.IDLE
+                self.logger.log_state(self, Node.IDLE)
+            else:
+                # transmit!
+                self.handle_transmission()
         else:
-            # transmit!
-            self.handle_transmission()
+            if self.receiving_count == 0:
+                # apply simple carrier sensing
+                self.schedule_next_carrier_sense()
+            else:
+                # channel busy, decide what to do picking a random number and behaving according to it
+                self.random = Uniform(0, 1).get_value()
+                if self.random < self.persistence:
+                    # transmit as soon as the channel gets free
+                    self.state = Node.WC
+                    self.logger.log_state(self, Node.WC)
+                # to do simple carrier sensing, we are already done, no need to change state
+                # in any case, schedule standard sensing
+                self.schedule_sense()
+
+    def handle_carrier_sense_event(self, event):
+        assert (self.protocol == Node.SIMPLE_CARRIER_SENSING)
+        assert (self.state == Node.WT)
+        self.carrier_sense_event = None
+        if self.receiving_count == 0:
+            # nobody is transmitting
+            if len(self.queue) == 0:
+                # nothing to transmit, go idle
+                self.state = Node.IDLE
+                self.logger.log_state(self, Node.IDLE)
+            else:
+                # we can transmit
+                self.handle_transmission()
+        else:
+            # channel still busy, start againg
+            self.random = Uniform(0, 1).get_value()
+            if self.random < self.persistence:
+                # transmit as soon as the channel gets free
+                self.state = Node.WC
+                self.logger.log_state(self, Node.WC)
+            # to do simple carrier sensing, we are already done, no need to change state
+            # in any case, schedule standard sensing
+            self.schedule_sense()
