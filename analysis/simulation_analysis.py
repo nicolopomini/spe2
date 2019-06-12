@@ -36,6 +36,8 @@ class SimulationGroupFolder:
         """
         # group by inter-arrival time and seed
         inter_arrival_group = {}
+        # key: inter-arrival, value: dict
+        # 2nd dict, key: seed, value: raw data of the simulations
         for file_name in file_list:
             single_simulation = SingleSimulation(self.folder_path, file_name)
             # inter arrival
@@ -43,7 +45,8 @@ class SimulationGroupFolder:
                 inter_arrival_group[single_simulation.inter_arrival] = {}
             # seed
             inter_arrival_group[single_simulation.inter_arrival][single_simulation.seed] = single_simulation
-        # create and fill a dictionary, with keys the inter-arrival times, and values the aggregation over seeds of the simulations
+        # create and fill a dictionary, with keys the inter-arrival times,
+        # and values the aggregation over seeds of the simulations
         group_results = {}
         for inter_arrival in inter_arrival_group:
             simulations = inter_arrival_group[inter_arrival]
@@ -51,7 +54,9 @@ class SimulationGroupFolder:
             avg_throughput = sum([simulations[s].throughput() for s in simulations]) / len(simulations)
             avg_collisions = sum([simulations[s].collision_rate() for s in simulations]) / len(simulations)
             avg_drop = sum([simulations[s].drop_rate() for s in simulations]) / len(simulations)
-            group_results[inter_arrival] = SimulationGroupResult(load, avg_throughput, avg_collisions, avg_drop)
+            group_results[inter_arrival] = SimulationGroupResult(
+                inter_arrival, load, avg_throughput, avg_collisions, avg_drop
+            )
         return group_results
 
 
@@ -113,12 +118,13 @@ class SimulationGroupResult:
     Container for aggregated results of a simulation.
     Inter arrival rate is fixed, while all the attributes are the average of multiple simulations with different seeds
     """
-    def __init__(self, load, throughput, collision_rate, drop_rate):
+    def __init__(self, inter_arrival, load, throughput, collision_rate, drop_rate):
+        self.inter_arrival = inter_arrival
         self.load = load
         self.throughput = throughput
         self.collision_rate = collision_rate
         self.drop_rate = drop_rate
 
     def __repr__(self):
-        return "(Load: %f, throughput: %f, collision rate: %f, drop rate: %f)" % \
-               (self.load, self.throughput, self.collision_rate, self.drop_rate)
+        return "(Inter-arrival: %f, Load: %f, throughput: %f, collision rate: %f, drop rate: %f)" % \
+               (self.inter_arrival, self.load, self.throughput, self.collision_rate, self.drop_rate)
