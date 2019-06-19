@@ -107,7 +107,7 @@ class Event:
             t = "END_RX"
         elif self.event_type == Events.END_PROC:
             t = "END_PROC"
-        elif self.event_type == Events.SENSE_CHANNEL:
+        elif self.event_type == Events.END_SENSING:
             t = "SENSE_CHANNEL"
         elif self.event_type == Events.CARRIER_SENSE:
             t = "CARRIER_SENSE"

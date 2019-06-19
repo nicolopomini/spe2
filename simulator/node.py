@@ -51,7 +51,7 @@ class Node(Module):
     TX = 1
     RX = 2
     PROC = 3
-    WC = 4
+    SENSING = 4
     WT = 5
 
     def __init__(self, config, channel, x, y, protocol, persistence):
@@ -97,7 +97,7 @@ class Node(Module):
             raise ValueError("Unrecognized protocol %s" % protocol)
         self.protocol = protocol
         # event used to sense the channel in case of carrier sensing
-        self.sense_event = None
+        self.end_sensing = None
         # persistence prob
         self.persistence = persistence
         # in case of simple carrier sensing, the persistence must be set
@@ -132,8 +132,8 @@ class Node(Module):
             self.handle_end_proc(event)
         elif event.get_type() == Events.RX_TIMEOUT:
             self.handle_rx_timeout(event)
-        elif event.get_type() == Events.SENSE_CHANNEL:
-            self.handle_sense(event)
+        elif event.get_type() == Events.END_SENSING:
+            self.handle_end_sensing(event)
         elif event.get_type() == Events.CARRIER_SENSE:
             self.handle_carrier_sense_event(event)
         else:
@@ -152,6 +152,17 @@ class Node(Module):
                       self, self)
         self.sim.schedule_event(event)
 
+    def enter_sensing(self):
+        """
+        Handler for entering in the SENSING state
+        """
+        assert (self.protocol == Node.TRIVIAL_CARRIER_SENSING or self.protocol == Node.SIMPLE_CARRIER_SENSING)
+        assert (not self.is_sensing())
+        self.end_sensing = Event(self.sim.get_time() + Node.SENSE_TIME, Events.END_SENSING, self, self)
+        self.sim.schedule_event(self.end_sensing)
+        self.state = Node.SENSING
+        self.logger.log_state(self, Node.SENSING)
+
     def handle_arrival(self):
         """
         Handles a packet arrival
@@ -165,10 +176,14 @@ class Node(Module):
             # queue
             assert(len(self.queue) == 0)
             # if current state is IDLE and there are no packets in the queue, we
-            # can start transmitting
-            self.transmit_packet(packet_size)
-            self.state = Node.TX
-            self.logger.log_state(self, Node.TX)
+            # can start transmitting if we are using ALOHA
+            if self.protocol == Node.ALOHA:
+                self.transmit_packet(packet_size)
+                self.state = Node.TX
+                self.logger.log_state(self, Node.TX)
+            # otherwise, sense the channel
+            else:
+                self.enter_sensing()
         else:
             # if we are either transmitting, receiving or waiting to transmit, packet must be queued
             if self.queue_size == 0 or len(self.queue) < self.queue_size:
@@ -201,6 +216,14 @@ class Node(Module):
                 # (we are not doing carrier sensing). In this case we assume we
                 # are not able to detect the new one and set that to corrupted
                 new_packet.set_state(Packet.PKT_CORRUPTED)
+        # if the node is sensing or waiting for the channel to be free, and no other packets are coming
+        # it can receive it
+        elif self.state == Node.SENSING and self.receiving_count == 0:
+            assert (self.protocol != Node.ALOHA)
+            if self.is_sensing():
+                self.sim.cancel_event(self.end_sensing)
+                self.end_sensing = None
+            self.receive_packet(new_packet)
         else:
             # node is either receiving or transmitting
             if self.state == Node.RX and self.current_pkt is not None:
@@ -234,6 +257,8 @@ class Node(Module):
         if self.state == Node.RX:
             if packet.get_state() == Packet.PKT_RECEIVING:
                 # using the realistic propagation: extract a random number between 0 and 1 and decide what to do
+                # in case of disk reception model, the probability of correct reception is 1, so the node will
+                # always receive it
                 random = Uniform(0, 1).get_value()
                 if random <= packet.correct_reception_probability:
                     # standard reception
@@ -261,6 +286,16 @@ class Node(Module):
                 # delete the timeout event
                 self.sim.cancel_event(self.timeout_event)
                 self.timeout_event = None
+        # during carrier sensing the last packet is transmitted: channel is now free
+        elif self.state == Node.SENSING and self.receiving_count == 0 and not self.is_sensing():
+            assert (self.protocol != Node.ALOHA)
+            # if nothing to transmit, go idle
+            if len(self.queue) == 0:
+                self.state = Node.IDLE
+                self.logger.log_state(self, Node.IDLE)
+            # otherwise, transmit!
+            else:
+                self.handle_transmission()
         self.receiving_count = self.receiving_count - 1
         # log packet
         self.logger.log_packet(event.get_source(), self, packet)
@@ -309,23 +344,21 @@ class Node(Module):
         :param event: the END_PROC event
         """
         assert(self.state == Node.PROC)
-        if self.protocol == Node.TRIVIAL_CARRIER_SENSING and self.receiving_count > 0:
-            # with trivial carrier sense, in case the node is receiving something, it must wait
-            self.state = Node.WC
-            self.logger.log_state(self, Node.WC)
-            self.schedule_sense()
-        elif self.protocol == Node.SIMPLE_CARRIER_SENSING and self.receiving_count > 0:
+        if self.protocol == Node.TRIVIAL_CARRIER_SENSING:
+            # with trivial carrier sense, the node must sense the channel
+            self.enter_sensing()
+        # elif self.protocol == Node.SIMPLE_CARRIER_SENSING and self.receiving_count > 0:
             # simple carrier sense: pick random number and decide what to do
-            self.random = Uniform(0, 1).get_value()
-            if self.random >= self.persistence:
+        #     self.random = Uniform(0, 1).get_value()
+        #    if self.random >= self.persistence:
                 # do carrier sensing
-                self.state = Node.WT
-                self.logger.log_state(self, Node.WT)
-            else:
+        #        self.state = Node.WT
+        #        self.logger.log_state(self, Node.WT)
+        #    else:
                 # transmit as soon as the channel gets free
-                self.state = Node.WC
-                self.logger.log_state(self, Node.WC)
-            self.schedule_sense()
+        #        self.state = Node.SENSING
+        #        self.logger.log_state(self, Node.SENSING)
+        #    self.schedule_sense()
         elif len(self.queue) == 0:
             # resuming operations but nothing to transmit. back to IDLE
             self.state = Node.IDLE
@@ -364,20 +397,6 @@ class Node(Module):
         """
         return self.y
 
-    def schedule_sense(self):
-        """
-        Wrapper to schedule the next sense of the channel.
-        To sense the channel it must hold:
-        1. using any carrier sensing protocol
-        2. being in the state of waiting the channel to be free
-        3. No other sense event must be scheduled
-        """
-        assert (self.protocol == Node.TRIVIAL_CARRIER_SENSING or self.protocol == Node.SIMPLE_CARRIER_SENSING)
-        assert (self.state == Node.WC or self.state == Node.WT)
-        assert (self.sense_event is None)
-        self.sense_event = Event(self.sim.get_time() + Node.SENSE_TIME, Events.SENSE_CHANNEL, self, self)
-        self.sim.schedule_event(self.sense_event)
-
     def schedule_next_carrier_sense(self):
         """
         Schedule the transmission using carrier sensing, after a random time
@@ -385,7 +404,7 @@ class Node(Module):
         # we must be in simple carrier sensing, waiting for the channel and without a sense event scheduled
         assert (self.protocol == Node.SIMPLE_CARRIER_SENSING)
         assert (self.state == Node.WT)
-        assert (self.sense_event is None)
+        assert (self.end_sensing is None)
         assert (self.carrier_sense_event is None)
         event_time = Exp(10 * self.maxsize * 8.0 / self.datarate).get_value()
         self.carrier_sense_event = Event(self.sim.get_time() + event_time, Events.CARRIER_SENSE, self, self)
@@ -419,40 +438,25 @@ class Node(Module):
         self.sim.schedule_event(self.timeout_event)
         self.logger.log_state(self, Node.RX)
 
-    def handle_sense(self, event):
+    def handle_end_sensing(self, event):
         """
-        Handle the sensing of the channel
+        Handler for the end_sensing event
         """
-        # node must be in any carrier sensing, and in WC or WT state
-        assert (self.protocol == Node.TRIVIAL_CARRIER_SENSING or self.protocol == Node.SIMPLE_CARRIER_SENSING)
-        assert (self.state == Node.WC or self.state == Node.WT)
-        # remove previous sense event
-        self.sense_event = None
-        if self.state == Node.WC:
-            if self.receiving_count > 0:
-                # somebody else is still transmitting, need to schedule a new sense
-                self.schedule_sense()
-            elif len(self.queue) == 0:
-                # nothing to transmit, go idle
+        # this event happens only when carrier sensing, and in the sensing state
+        assert (self.protocol != Node.ALOHA)
+        assert (self.state == Node.SENSING)
+        # first, remove the event
+        self.end_sensing = None
+        # if the channel is free, either transmit or go idle
+        if self.receiving_count == 0:
+            if len(self.queue) == 0:
+                # Nothing to transmit. back to IDLE
                 self.state = Node.IDLE
                 self.logger.log_state(self, Node.IDLE)
             else:
-                # transmit!
+                # there is a packet ready, trasmit it
                 self.handle_transmission()
-        else:
-            if self.receiving_count == 0:
-                # apply simple carrier sensing
-                self.schedule_next_carrier_sense()
-            else:
-                # channel busy, decide what to do picking a random number and behaving according to it
-                self.random = Uniform(0, 1).get_value()
-                if self.random < self.persistence:
-                    # transmit as soon as the channel gets free
-                    self.state = Node.WC
-                    self.logger.log_state(self, Node.WC)
-                # to do simple carrier sensing, we are already done, no need to change state
-                # in any case, schedule standard sensing
-                self.schedule_sense()
+        # otherwise the node has to wait
 
     def handle_carrier_sense_event(self, event):
         assert (self.protocol == Node.SIMPLE_CARRIER_SENSING)
@@ -472,8 +476,15 @@ class Node(Module):
             self.random = Uniform(0, 1).get_value()
             if self.random < self.persistence:
                 # transmit as soon as the channel gets free
-                self.state = Node.WC
-                self.logger.log_state(self, Node.WC)
+                self.state = Node.SENSING
+                self.logger.log_state(self, Node.SENSING)
             # to do simple carrier sensing, we are already done, no need to change state
             # in any case, schedule standard sensing
             self.schedule_sense()
+
+    def is_sensing(self):
+        """
+        True if the node is sensing the channel, false otherwise
+        :return:
+        """
+        return self.end_sensing is not None
