@@ -37,4 +37,4 @@ class Events:
     # sense the channel
     END_SENSING = 7
     # carrier sense
-    CARRIER_SENSE = 8
+    WT_TIMEOUT = 8

@@ -108,9 +108,9 @@ class Event:
         elif self.event_type == Events.END_PROC:
             t = "END_PROC"
         elif self.event_type == Events.END_SENSING:
-            t = "SENSE_CHANNEL"
-        elif self.event_type == Events.CARRIER_SENSE:
-            t = "CARRIER_SENSE"
+            t = "END_SENSING"
+        elif self.event_type == Events.WT_TIMEOUT:
+            t = "WT_TIMEOUT"
         print("Event type: %s" % t)
         print("Source node: %d" % self.source.get_id())
         print("Destination node: %d\n" % self.destination.get_id())

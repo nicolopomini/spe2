@@ -105,9 +105,7 @@ class Node(Module):
         # also, persistence must be between 0 and 1
         assert (self.persistence is None or (0.0 <= self.persistence <= 1.0))
         # carrier sense event
-        self.carrier_sense_event = None
-        # random choice for carrier sense
-        self.random = None
+        self.wt_timeout = None
 
     def initialize(self):
         """
@@ -134,8 +132,8 @@ class Node(Module):
             self.handle_rx_timeout(event)
         elif event.get_type() == Events.END_SENSING:
             self.handle_end_sensing(event)
-        elif event.get_type() == Events.CARRIER_SENSE:
-            self.handle_carrier_sense_event(event)
+        elif event.get_type() == Events.WT_TIMEOUT:
+            self.handle_wt_timeout(event)
         else:
             print("Node %d has received a notification for event type %d which"
                   " can't be handled", (self.get_id(), event.get_type()))
@@ -223,6 +221,13 @@ class Node(Module):
             if self.is_sensing():
                 self.sim.cancel_event(self.end_sensing)
                 self.end_sensing = None
+            self.receive_packet(new_packet)
+        # with simple carrier sensing, if the node is waiting to transmit, it can receive the first incoming packet
+        elif self.state == Node.WT and self.receiving_count == 0:
+            assert (self.protocol == Node.SIMPLE_CARRIER_SENSING)
+            if self.wt_timeout is not None:
+                self.sim.cancel_event(self.wt_timeout)
+                self.wt_timeout = None
             self.receive_packet(new_packet)
         else:
             # node is either receiving or transmitting
@@ -344,21 +349,9 @@ class Node(Module):
         :param event: the END_PROC event
         """
         assert(self.state == Node.PROC)
-        if self.protocol == Node.TRIVIAL_CARRIER_SENSING:
-            # with trivial carrier sense, the node must sense the channel
+        if self.protocol != Node.ALOHA:
+            # with carrier sense, the node must sense the channel
             self.enter_sensing()
-        # elif self.protocol == Node.SIMPLE_CARRIER_SENSING and self.receiving_count > 0:
-            # simple carrier sense: pick random number and decide what to do
-        #     self.random = Uniform(0, 1).get_value()
-        #    if self.random >= self.persistence:
-                # do carrier sensing
-        #        self.state = Node.WT
-        #        self.logger.log_state(self, Node.WT)
-        #    else:
-                # transmit as soon as the channel gets free
-        #        self.state = Node.SENSING
-        #        self.logger.log_state(self, Node.SENSING)
-        #    self.schedule_sense()
         elif len(self.queue) == 0:
             # resuming operations but nothing to transmit. back to IDLE
             self.state = Node.IDLE
@@ -397,7 +390,7 @@ class Node(Module):
         """
         return self.y
 
-    def schedule_next_carrier_sense(self):
+    def schedule_wt_timeout(self):
         """
         Schedule the transmission using carrier sensing, after a random time
         """
@@ -405,10 +398,10 @@ class Node(Module):
         assert (self.protocol == Node.SIMPLE_CARRIER_SENSING)
         assert (self.state == Node.WT)
         assert (self.end_sensing is None)
-        assert (self.carrier_sense_event is None)
+        assert (self.wt_timeout is None)
         event_time = Exp(10 * self.maxsize * 8.0 / self.datarate).get_value()
-        self.carrier_sense_event = Event(self.sim.get_time() + event_time, Events.CARRIER_SENSE, self, self)
-        self.sim.schedule_event(self.carrier_sense_event)
+        self.wt_timeout = Event(self.sim.get_time() + event_time, Events.WT_TIMEOUT, self, self)
+        self.sim.schedule_event(self.wt_timeout)
 
     def handle_transmission(self):
         """
@@ -456,31 +449,35 @@ class Node(Module):
             else:
                 # there is a packet ready, trasmit it
                 self.handle_transmission()
+        elif self.protocol == Node.SIMPLE_CARRIER_SENSING and len(self.queue) > 0:
+            # with simple cs and the channel busy, the node generates a random number and decides what to do
+            random = Uniform(0, 1).get_value()
+            if random > self.persistence:
+                # delay the transmission and move to WT
+                self.state = Node.WT
+                self.logger.log_state(self, Node.WT)
+                self.schedule_wt_timeout()
         # otherwise the node has to wait
 
-    def handle_carrier_sense_event(self, event):
+    def handle_wt_timeout(self, event):
         assert (self.protocol == Node.SIMPLE_CARRIER_SENSING)
         assert (self.state == Node.WT)
-        self.carrier_sense_event = None
+        assert (len(self.queue) > 0)
+        # remove the event
+        self.wt_timeout = None
         if self.receiving_count == 0:
-            # nobody is transmitting
-            if len(self.queue) == 0:
-                # nothing to transmit, go idle
-                self.state = Node.IDLE
-                self.logger.log_state(self, Node.IDLE)
-            else:
-                # we can transmit
-                self.handle_transmission()
+            # if the channel is free, transmit
+            self.handle_transmission()
         else:
-            # channel still busy, start againg
-            self.random = Uniform(0, 1).get_value()
-            if self.random < self.persistence:
-                # transmit as soon as the channel gets free
+            # generate random number and decide what to do
+            random = Uniform(0, 1).get_value()
+            if random > self.persistence:
+                # the node remains in this state and schedule the new transmission
+                self.schedule_wt_timeout()
+            else:
+                # the node goes back to SENSING and behaves in 1-p mode
                 self.state = Node.SENSING
                 self.logger.log_state(self, Node.SENSING)
-            # to do simple carrier sensing, we are already done, no need to change state
-            # in any case, schedule standard sensing
-            self.schedule_sense()
 
     def is_sensing(self):
         """
