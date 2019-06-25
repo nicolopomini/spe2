@@ -9,6 +9,7 @@ class Plotter:
     THROUGHPUT_PLOT_NAME = "throughput.pdf"
     DROP_RATE_PLOT_NAME = "drop.pdf"
     COLLISION_RATE_PLOT_NAME = "collision.pdf"
+    CORRUPTION_RATE_PLOT_NAME = "corruption.pdf"
 
     @staticmethod
     def plot_throughput(title, location, load, aloha_throughput, trivial_throughput, simple_throughput):
@@ -67,3 +68,17 @@ class Plotter:
         plt.title("Throughput with different reception models")
         plt.legend(loc='best')
         plt.savefig(Plotter.BASE_DIR + "throughput_comp.pdf")
+
+    @staticmethod
+    def plot_corruption_rate(load, aloha_corr, trivial_corr, simple_corr):
+        plt.figure()
+        plt.grid()
+        plt.plot(load, aloha_corr, "o-", label="Aloha")
+        plt.plot(load, trivial_corr, "o-", label="Trivial")
+        for persistence in simple_corr:
+            plt.plot(load, simple_corr[persistence].corruption_rate, "o-", label="Simple with p = %f" % persistence)
+        plt.xlabel("Total offered load [Mbps]")
+        plt.ylabel("Channel corruption rate")
+        plt.title("Channel corruption rate")
+        plt.legend(loc='best')
+        plt.savefig(Plotter.BASE_DIR + Plotter.CORRUPTION_RATE_PLOT_NAME)

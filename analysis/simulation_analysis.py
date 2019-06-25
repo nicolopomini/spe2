@@ -54,8 +54,9 @@ class SimulationGroupFolder:
             avg_throughput = sum([simulations[s].throughput() for s in simulations]) / len(simulations)
             avg_collisions = sum([simulations[s].collision_rate() for s in simulations]) / len(simulations)
             avg_drop = sum([simulations[s].drop_rate() for s in simulations]) / len(simulations)
+            avg_corr = sum([simulations[s].channel_corruption_rate() for s in simulations]) / len(simulations)
             group_results[inter_arrival] = SimulationGroupResult(
-                inter_arrival, load, avg_throughput, avg_collisions, avg_drop
+                inter_arrival, load, avg_throughput, avg_collisions, avg_drop, avg_corr
             )
         return group_results
 
@@ -112,18 +113,27 @@ class SingleSimulation:
         """
         return self._dropped / self._generated
 
+    def channel_corruption_rate(self):
+        """
+        Ratio of packets corrupted by the channel over total generated.
+        Of course, it does not make sense with disk reception
+        :return: channel corruption rate
+        """
+        return self._corrupted_by_channel / (self._corrupted + self._received + self._corrupted_by_channel)
+
 
 class SimulationGroupResult:
     """
     Container for aggregated results of a simulation.
     Inter arrival rate is fixed, while all the attributes are the average of multiple simulations with different seeds
     """
-    def __init__(self, inter_arrival, load, throughput, collision_rate, drop_rate):
+    def __init__(self, inter_arrival, load, throughput, collision_rate, drop_rate, corruption_rate):
         self.inter_arrival = inter_arrival
         self.load = load
         self.throughput = throughput
         self.collision_rate = collision_rate
         self.drop_rate = drop_rate
+        self.corruption_rate = corruption_rate
 
     def __repr__(self):
         return "(Inter-arrival: %f, Load: %f, throughput: %f, collision rate: %f, drop rate: %f)" % \

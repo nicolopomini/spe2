@@ -36,14 +36,24 @@ class AnalysisManager:
         throughputs = []
         coll_rate = []
         drop_rate = []
+        corr_rate = []
         for k in ordered_keys:
             loads.append(results_by_inter_arrival[k].load)
             throughputs.append(results_by_inter_arrival[k].throughput)
             coll_rate.append(results_by_inter_arrival[k].collision_rate)
             drop_rate.append(results_by_inter_arrival[k].drop_rate)
-        return SettingResult(loads, throughputs, coll_rate, drop_rate)
+            corr_rate.append(results_by_inter_arrival[k].corruption_rate)
+        return SettingResult(loads, throughputs, coll_rate, drop_rate, corr_rate)
 
     def make_plots(self):
+        """
+        One only comparison between disk and prob reception, made on throughput
+        For prob reception, 4 plots:
+        - throughput
+        - drop rate
+        - collision rate
+        - channel corruption rate
+        """
         aloha_disk = self._analyze_sub_folder(self.ALOHA_DISK_FOLDER)
         aloha_prob = self._analyze_sub_folder(self.ALOHA_PROB_FOLDER)
         trivial_disk = self._analyze_sub_folder(self.TRIVIAL_DISK_FOLDER)
@@ -61,15 +71,15 @@ class AnalysisManager:
             0.75: self._analyze_sub_folder(self.SIMPLE_PROB_75),
         }
         # plot collision rate (does not change wrt the reception model)
-        Plotter.plot_collision_rate(aloha_disk.load,
-                                    aloha_disk.collision_rate,
-                                    trivial_disk.collision_rate,
-                                    simple_disk)
+        Plotter.plot_collision_rate(aloha_prob.load,
+                                    aloha_prob.collision_rate,
+                                    trivial_prob.collision_rate,
+                                    simple_prob)
         # plot drop rate (does not change wrt the reception model)
-        Plotter.plot_drop_rate(aloha_disk.load, aloha_disk.drop_rate, trivial_disk.drop_rate, simple_disk)
+        Plotter.plot_drop_rate(aloha_prob.load, aloha_prob.drop_rate, trivial_prob.drop_rate, simple_prob)
         # plot throughput with disk reception
-        Plotter.plot_throughput("Throughput with disk reception", Plotter.BASE_DIR + "throughput_disk.pdf",
-                                aloha_disk.load, aloha_disk.throughput, trivial_disk.throughput, simple_disk)
+        # Plotter.plot_throughput("Throughput with disk reception", Plotter.BASE_DIR + "throughput_disk.pdf",
+        #                        aloha_disk.load, aloha_disk.throughput, trivial_disk.throughput, simple_disk)
         # plot throughput with prob reception
         Plotter.plot_throughput("Throughput with prob reception", Plotter.BASE_DIR + "throughput_prob.pdf",
                                 aloha_prob.load, aloha_prob.throughput, trivial_prob.throughput, simple_prob)
@@ -77,15 +87,19 @@ class AnalysisManager:
         Plotter.plot_throughput_comparison(aloha_disk.load, aloha_disk.throughput, aloha_prob.throughput,
                                            trivial_disk.throughput, trivial_prob.throughput,
                                            simple_disk[0.0].throughput, simple_prob[0.0].throughput)
+        # plot corruption rate
+        Plotter.plot_corruption_rate(aloha_prob.load, aloha_prob.corruption_rate, trivial_prob.corruption_rate,
+                                     simple_prob)
 
 
 class SettingResult:
 
-    def __init__(self, load, throughput, collision_rate, drop_rate):
+    def __init__(self, load, throughput, collision_rate, drop_rate, corruption_rate):
         self.load = load
         self.throughput = throughput
         self.collision_rate = collision_rate
         self.drop_rate = drop_rate
+        self.corruption_rate = corruption_rate
 
     def __repr__(self):
         return "Setting result:\nLoad: %s\nThroughput: %s\nColl. rate: %s\nDrop rate %s" % (
