@@ -18,7 +18,7 @@ class Plotter:
         plt.plot(load, aloha_throughput, "o-", label="Aloha")
         plt.plot(load, trivial_throughput, "o-", label="Trivial")
         for persistence in simple_throughput:
-            plt.plot(load, simple_throughput[persistence].throughput, "o-", label="Simple with p = %f" % persistence)
+            plt.plot(load, simple_throughput[persistence].throughput, "o-", label="Simple with p = %2f" % persistence)
         plt.xlabel("Total offered load [Mbps]")
         plt.ylabel("Throughput at receiver [Mbps]")
         plt.title(title)
@@ -32,7 +32,7 @@ class Plotter:
         plt.plot(load, aloha_drop, "o-", label="Aloha")
         plt.plot(load, trivial_drop, "o-", label="Trivial")
         for persistence in simple_drop:
-            plt.plot(load, simple_drop[persistence].drop_rate, "o-", label="Simple with p = %f" % persistence)
+            plt.plot(load, simple_drop[persistence].drop_rate, "o-", label="Simple with p = %2f" % persistence)
         plt.xlabel("Total offered load [Mbps]")
         plt.ylabel("Packet drop rate at the sender")
         plt.title("Packet drop rate")
@@ -46,7 +46,7 @@ class Plotter:
         plt.plot(load, aloha_coll, "o-", label="Aloha")
         plt.plot(load, trivial_coll, "o-", label="Trivial")
         for persistence in simple_coll:
-            plt.plot(load, simple_coll[persistence].collision_rate, "o-", label="Simple with p = %f" % persistence)
+            plt.plot(load, simple_coll[persistence].collision_rate, "o-", label="Simple with p = %2f" % persistence)
         plt.xlabel("Total offered load [Mbps]")
         plt.ylabel("Packet collision rate at the receiver")
         plt.title("Collision rate")
@@ -76,7 +76,7 @@ class Plotter:
         plt.plot(load, aloha_corr, "o-", label="Aloha")
         plt.plot(load, trivial_corr, "o-", label="Trivial")
         for persistence in simple_corr:
-            plt.plot(load, simple_corr[persistence].corruption_rate, "o-", label="Simple with p = %f" % persistence)
+            plt.plot(load, simple_corr[persistence].corruption_rate, "o-", label="Simple with p = %2f" % persistence)
         plt.xlabel("Total offered load [Mbps]")
         plt.ylabel("Channel corruption rate")
         plt.title("Channel corruption rate")

@@ -79,39 +79,41 @@ class SingleSimulation:
         #  pre compute all the information needed for the evaluation
         self._n = len(df['dst'].unique())
         self._simulation_time = max(df['time'])
-        self._received = len(df.loc[df["event"] == Log.LOG_RECEIVED])
+        self._received = df.loc[df["event"] == Log.LOG_RECEIVED]
         self._corrupted = len(df.loc[df["event"] == Log.LOG_CORRUPTED])
         self._corrupted_by_channel = len(df.loc[df["event"] == Log.LOG_CORRUPTED_BY_CHANNEL])
         self._dropped = len(df.loc[df["event"] == Log.LOG_QUEUE_DROPPED])
         self._generated = len(df.loc[df["event"] == Log.LOG_GENERATED])
+        self._incoming = len(self._received) + self._corrupted + self._corrupted_by_channel
 
     def offered_load(self):
         """
         Compute the offered load
         :return: the offered load
         """
-        return self.inter_arrival * (32 + 1500) / 2 * self._n * 8 / 1024 / 1024
+        packet_size = (32 + 1500) / 2
+        return self.inter_arrival * packet_size * self._n * 8 / 1024 / 1024
 
     def throughput(self):
         """
         Compute the throughput at the receiver
         :return: the throughput, in Mbps
         """
-        return self._received / self._simulation_time
+        return self._received["size"].sum() * 8 / self._simulation_time / 1024 / 1024
 
     def collision_rate(self):
         """
         #Corrupted packets / all the incoming packets
         :return: the collision rate
         """
-        return self._corrupted / (self._corrupted + self._received + self._corrupted_by_channel)
+        return self._corrupted * 1.0 / self._incoming
 
     def drop_rate(self):
         """
         Ratio of packets dropped at the queue over total generated
         :return: the drop rate
         """
-        return self._dropped / self._generated
+        return self._dropped * 1.0 / self._generated
 
     def channel_corruption_rate(self):
         """
@@ -119,7 +121,7 @@ class SingleSimulation:
         Of course, it does not make sense with disk reception
         :return: channel corruption rate
         """
-        return self._corrupted_by_channel / (self._corrupted + self._received + self._corrupted_by_channel)
+        return self._corrupted_by_channel * 1.0 / self._incoming
 
 
 class SimulationGroupResult:
