@@ -1,7 +1,7 @@
 {
 	"simulation" : {
 		// seed(s) to initialize PRNGs
-		"seed" : [0],
+		"seed" : [0, 1],
 		// duration of each simulation in seconds
 		"duration" : 30,
 		// communication range in meters
@@ -12,9 +12,37 @@
 		"queue" : 2,
 		// packet inter-arrival distribution in 1/seconds
 		"interarrival" : [
-            {"distribution" : "exp", "lambda" : 500},
-            {"distribution" : "exp", "lambda" : 1000},
-            {"distribution" : "exp", "lambda" : 1500}
+			{"distribution" : "exp", "lambda" : 10},
+			{"distribution" : "exp", "lambda" : 60},
+			{"distribution" : "exp", "lambda" : 110},
+			{"distribution" : "exp", "lambda" : 160},
+			{"distribution" : "exp", "lambda" : 210},
+			{"distribution" : "exp", "lambda" : 260},
+			{"distribution" : "exp", "lambda" : 310},
+			{"distribution" : "exp", "lambda" : 360},
+			{"distribution" : "exp", "lambda" : 410},
+			{"distribution" : "exp", "lambda" : 460},
+			{"distribution" : "exp", "lambda" : 510},
+			{"distribution" : "exp", "lambda" : 560},
+			{"distribution" : "exp", "lambda" : 610},
+			{"distribution" : "exp", "lambda" : 660},
+			{"distribution" : "exp", "lambda" : 710},
+			{"distribution" : "exp", "lambda" : 760},
+			{"distribution" : "exp", "lambda" : 810},
+			{"distribution" : "exp", "lambda" : 860},
+			{"distribution" : "exp", "lambda" : 910},
+			{"distribution" : "exp", "lambda" : 960},
+			{"distribution" : "exp", "lambda" : 1010},
+			{"distribution" : "exp", "lambda" : 1060},
+			{"distribution" : "exp", "lambda" : 1110},
+			{"distribution" : "exp", "lambda" : 1160},
+			{"distribution" : "exp", "lambda" : 1210},
+			{"distribution" : "exp", "lambda" : 1260},
+			{"distribution" : "exp", "lambda" : 1310},
+			{"distribution" : "exp", "lambda" : 1360},
+			{"distribution" : "exp", "lambda" : 1410},
+			{"distribution" : "exp", "lambda" : 1460},
+			{"distribution" : "exp", "lambda" : 1510}
 		],
 		// packet size distribution in bytes
 		"size" : {"distribution" : "unif", "min" : 32, "max" : 1500, "int" : 1},
@@ -24,7 +52,18 @@
 		"processing" : {"distribution" : "const", "mean" : 0.000001},
 		// position of nodes, list of x,y pairs
 		"nodes" : [
-			[[1,1], [2,3], [0, 0]]
+    		[
+				[22.246,19.106],
+				[14.227,11.442],
+				[1.217,15.409],
+				[10.002,24.204],
+				[2.584,17.94],
+				[10.77,17.604],
+				[18.975,15.425],
+				[23.435,24.434],
+				[0.091,9.717],
+				[15.207,19.929]
+			]
 		],
 		// log file name using configuration parameters
 		"output" : "output_{interarrival.lambda}_{seed}.csv"
