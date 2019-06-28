@@ -1,4 +1,4 @@
-from plot import Plotter
+from plot import Plotter, SingleNodePlotter
 from simulation_analysis import SimulationGroupFolder
 
 
@@ -20,6 +20,7 @@ class AnalysisManager:
     SIMPLE_PROB_50 = "simple_prob_50"
     SIMPLE_PROB_25 = "simple_prob_25"
     SIMPLE_PROB_00 = "simple_prob_00"
+    NODES = 10
 
     def __init__(self, base_folder="raw_data/"):
         self.base_folder = base_folder
@@ -29,7 +30,7 @@ class AnalysisManager:
     def _analyze_sub_folder(self, raw_data_sub_folder):
         folder_manager = SimulationGroupFolder(self.base_folder + raw_data_sub_folder)
         file_list = folder_manager.get_file_list()
-        # results of a single type of simulaton, grouped by inter-arrival
+        # results of a single type of simulation, grouped by inter-arrival
         results_by_inter_arrival = folder_manager.group_by_inter_arrival(file_list)
         ordered_keys = sorted(results_by_inter_arrival.keys())
         loads = []
@@ -44,6 +45,28 @@ class AnalysisManager:
             drop_rate.append(results_by_inter_arrival[k].drop_rate)
             corr_rate.append(results_by_inter_arrival[k].corruption_rate)
         return SettingResult(loads, throughputs, coll_rate, drop_rate, corr_rate)
+
+    def analyze_single_nodes(self, raw_data_sub_folder):
+        folder_manager = SimulationGroupFolder(self.base_folder + raw_data_sub_folder)
+        file_list = folder_manager.get_file_list()
+        # results of a single type of simulation, grouped by inter-arrival
+        results_by_inter_arrival = folder_manager.group_by_interarrival_single_nodes(file_list, self.NODES)
+        ordered_keys = sorted(results_by_inter_arrival.keys())
+        nodes = []
+        for i in range(self.NODES):
+            loads = []
+            throughputs = []
+            coll_rate = []
+            drop_rate = []
+            corr_rate = []
+            for k in ordered_keys:
+                loads.append(results_by_inter_arrival[k].load)
+                throughputs.append(results_by_inter_arrival[k].throughput[i])
+                coll_rate.append(results_by_inter_arrival[k].collision_rate[i])
+                drop_rate.append(results_by_inter_arrival[k].drop_rate[i])
+                corr_rate.append(results_by_inter_arrival[k].corruption_rate[i])
+            nodes.append(NodeResult(i + 1, loads, throughputs, coll_rate, drop_rate, corr_rate))
+        return nodes
 
     def make_plots(self):
         """
@@ -91,6 +114,84 @@ class AnalysisManager:
         Plotter.plot_corruption_rate(aloha_prob.load, aloha_prob.corruption_rate, trivial_prob.corruption_rate,
                                      simple_prob)
 
+    def plot_single_nodes(self):
+        # aloha
+        aloha_prob = self.analyze_single_nodes(self.ALOHA_PROB_FOLDER)
+        SingleNodePlotter.plot_throughput(aloha_prob, "Throughput with aloha and prob reception",
+                                          "aloha_prob_thr.pdf")
+        SingleNodePlotter.plot_collision_rate(aloha_prob, "Collision rate with aloha and prob reception",
+                                              "aloha_prob_coll.pdf")
+        SingleNodePlotter.plot_drop_rate(aloha_prob, "Drop rate with aloha and prob reception", "aloha_prob_drop.pdf")
+        SingleNodePlotter.plot_channel_corruption_rate(aloha_prob,
+                                                       "Channel corr. rate with aloha and prob reception",
+                                                       "aloha_prob_corr.pdf")
+        # trivial carrier sensing
+        trivial_prob = self.analyze_single_nodes(self.TRIVIAL_PROB_FOLDER)
+        SingleNodePlotter.plot_throughput(trivial_prob, "Throughput with trivial cs and prob reception",
+                                          "trivial_prob_thr.pdf")
+        SingleNodePlotter.plot_collision_rate(trivial_prob,
+                                              "Collision rate with trivial cs and prob reception",
+                                              "trivial_prob_coll.pdf")
+        SingleNodePlotter.plot_drop_rate(aloha_prob, "Drop rate with trivial cs and prob reception",
+                                         "trivial_prob_drop.pdf")
+        SingleNodePlotter.plot_channel_corruption_rate(trivial_prob,
+                                                       "Channel corr. rate with trivial cs and prob reception",
+                                                       "trivial_prob_corr.pdf")
+        # simple carrier sensing, p = 0.75
+        trivial_prob = self.analyze_single_nodes(self.SIMPLE_PROB_75)
+        SingleNodePlotter.plot_throughput(trivial_prob, "Throughput with simple cs and prob reception [p = 0.75]",
+                                          "simple75_prob_thr.pdf")
+        SingleNodePlotter.plot_collision_rate(trivial_prob,
+                                              "Collision rate with simple cs and prob reception [p = 0.75]",
+                                              "simple75_prob_coll.pdf")
+        SingleNodePlotter.plot_drop_rate(aloha_prob, "Drop rate with simple cs and prob reception [p = 0.75]",
+                                         "simple75_prob_drop.pdf")
+        SingleNodePlotter.plot_channel_corruption_rate(trivial_prob,
+                                                       "Channel corr. rate with simple cs and prob reception [p = 0.75]",
+                                                       "simple75_prob_corr.pdf")
+        # simple carrier sensing, p = 0.5
+        trivial_prob = self.analyze_single_nodes(self.SIMPLE_PROB_50)
+        SingleNodePlotter.plot_throughput(trivial_prob,
+                                          "Throughput with simple cs and prob reception [p = 0.5]",
+                                          "simple50_prob_thr.pdf")
+        SingleNodePlotter.plot_collision_rate(trivial_prob,
+                                              "Collision rate with simple cs and prob reception [p = 0.5]",
+                                              "simple50_prob_coll.pdf")
+        SingleNodePlotter.plot_drop_rate(aloha_prob,
+                                         "Drop rate with simple cs and prob reception [p = 0.5]",
+                                         "simple50_prob_drop.pdf")
+        SingleNodePlotter.plot_channel_corruption_rate(trivial_prob,
+                                                       "Channel corr. rate with simple cs and prob reception [p = 0.5]",
+                                                       "simple50_prob_corr.pdf")
+        # simple carrier sensing, p = 0.25
+        trivial_prob = self.analyze_single_nodes(self.SIMPLE_PROB_25)
+        SingleNodePlotter.plot_throughput(trivial_prob,
+                                          "Throughput with simple cs and prob reception [p = 0.25]",
+                                          "simple25_prob_thr.pdf")
+        SingleNodePlotter.plot_collision_rate(trivial_prob,
+                                              "Collision rate with simple cs and prob reception [p = 0.25]",
+                                              "simple25_prob_coll.pdf")
+        SingleNodePlotter.plot_drop_rate(aloha_prob,
+                                         "Drop rate with simple cs and prob reception [p = 0.25]",
+                                         "simple25_prob_drop.pdf")
+        SingleNodePlotter.plot_channel_corruption_rate(trivial_prob,
+                                                       "Channel corr. rate with simple cs and prob reception [p = 0.25]",
+                                                       "simple25_prob_corr.pdf")
+        # simple carrier sensing, p = 0
+        trivial_prob = self.analyze_single_nodes(self.SIMPLE_PROB_00)
+        SingleNodePlotter.plot_throughput(trivial_prob,
+                                          "Throughput with simple cs and prob reception [p = 0]",
+                                          "simple00_prob_thr.pdf")
+        SingleNodePlotter.plot_collision_rate(trivial_prob,
+                                              "Collision rate with simple cs and prob reception [p = 0]",
+                                              "simple00_prob_coll.pdf")
+        SingleNodePlotter.plot_drop_rate(aloha_prob,
+                                         "Drop rate with simple cs and prob reception [p = 0]",
+                                         "simple00_prob_drop.pdf")
+        SingleNodePlotter.plot_channel_corruption_rate(trivial_prob,
+                                                       "Channel corr. rate with simple cs and prob reception [p = 0]",
+                                                       "simple00_prob_corr.pdf")
+
 
 class SettingResult:
 
@@ -105,3 +206,14 @@ class SettingResult:
         return "Setting result:\nLoad: %s\nThroughput: %s\nColl. rate: %s\nDrop rate %s" % (
             str(self.load), str(self.throughput), str(self.collision_rate), str(self.drop_rate)
         )
+
+
+class NodeResult:
+
+    def __init__(self, node, loads, throughputs, coll_rates, drop_rates, corr_rates):
+        self.node = node
+        self.loads = loads
+        self.throughputs = throughputs
+        self.coll_rates = coll_rates
+        self.drop_rates = drop_rates
+        self.corr_rates = corr_rates

@@ -22,7 +22,7 @@
 			//{"distribution" : "exp", "lambda" : 360},
 			//{"distribution" : "exp", "lambda" : 410},
 			//{"distribution" : "exp", "lambda" : 460},
-			{"distribution" : "exp", "lambda" : 510},
+			{"distribution" : "exp", "lambda" : 510}
 			//{"distribution" : "exp", "lambda" : 560},
 			//{"distribution" : "exp", "lambda" : 610},
 			//{"distribution" : "exp", "lambda" : 660},
@@ -33,7 +33,7 @@
 			//{"distribution" : "exp", "lambda" : 910},
 			//{"distribution" : "exp", "lambda" : 960},
 			//{"distribution" : "exp", "lambda" : 1010},
-			{"distribution" : "exp", "lambda" : 1060},
+			//{"distribution" : "exp", "lambda" : 1060},
 			//{"distribution" : "exp", "lambda" : 1110},
 			//{"distribution" : "exp", "lambda" : 1160},
 			//{"distribution" : "exp", "lambda" : 1210},
@@ -42,7 +42,7 @@
 			//{"distribution" : "exp", "lambda" : 1360},
 			//{"distribution" : "exp", "lambda" : 1410},
 			//{"distribution" : "exp", "lambda" : 1460},
-			{"distribution" : "exp", "lambda" : 1510}
+			//{"distribution" : "exp", "lambda" : 1510}
 		],
 		// packet size distribution in bytes
 		"size" : {"distribution" : "unif", "min" : 32, "max" : 1500, "int" : 1},

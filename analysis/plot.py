@@ -13,16 +13,21 @@ class Plotter:
 
     @staticmethod
     def plot_throughput(title, location, load, aloha_throughput, trivial_throughput, simple_throughput):
-        plt.figure()
-        plt.grid()
-        plt.plot(load, aloha_throughput, "o-", label="Aloha")
-        plt.plot(load, trivial_throughput, "o-", label="Trivial")
+        plt.figure(figsize=(8.5, 4.8))
+        sub = plt.subplot(111)
+        sub.grid()
+        sub.plot(load, aloha_throughput, "o-", label="Aloha")
+        sub.plot(load, trivial_throughput, "o-", label="Trivial")
         for persistence in simple_throughput:
-            plt.plot(load, simple_throughput[persistence].throughput, "o-", label="Simple with p = %2f" % persistence)
+            sub.plot(load, simple_throughput[persistence].throughput, "o-", label="Simple, p = %2f" % persistence)
         plt.xlabel("Total offered load [Mbps]")
         plt.ylabel("Throughput at receiver [Mbps]")
         plt.title(title)
-        plt.legend(loc='best')
+        box = sub.get_position()
+        sub.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+
+        # Put a legend to the right of the current axis
+        sub.legend(loc='center left', bbox_to_anchor=(1, 0.5))
         plt.savefig(location)
 
     @staticmethod
@@ -55,18 +60,23 @@ class Plotter:
 
     @staticmethod
     def plot_throughput_comparison(load, aloha_disk, aloha_prob, trivial_disk, trivial_prob, simple0_disk, simple0_prob):
-        plt.figure()
-        plt.grid()
-        plt.plot(load, aloha_disk, "o-", label="Aloha with disk rec.")
-        plt.plot(load, aloha_prob, "o-", label="Aloha with prob rec.")
-        plt.plot(load, trivial_disk, "o-", label="Trivial with disk rec.")
-        plt.plot(load, trivial_prob, "o-", label="Trivial with prob rec.")
-        plt.plot(load, simple0_disk, "o-", label="Simple [p = 0] with disk rec.")
-        plt.plot(load, simple0_prob, "o-", label="Simple [p = 0] with prob rec.")
+        plt.figure(figsize=(9.5, 4.8))
+        sub = plt.subplot(111)
+        sub.grid()
+        sub.plot(load, aloha_disk, "o-", label="Aloha with disk rec.")
+        sub.plot(load, aloha_prob, "o-", label="Aloha with prob rec.")
+        sub.plot(load, trivial_disk, "o-", label="Trivial with disk rec.")
+        sub.plot(load, trivial_prob, "o-", label="Trivial with prob rec.")
+        sub.plot(load, simple0_disk, "o-", label="Simple [p = 0], disk rec.")
+        sub.plot(load, simple0_prob, "o-", label="Simple [p = 0], prob rec.")
         plt.xlabel("Total offered load [Mbps]")
         plt.ylabel("Throughput at receiver [Mbps]")
         plt.title("Throughput with different reception models")
-        plt.legend(loc='best')
+        box = sub.get_position()
+        sub.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+
+        # Put a legend to the right of the current axis
+        sub.legend(loc='center left', bbox_to_anchor=(1, 0.5))
         plt.savefig(Plotter.BASE_DIR + "throughput_comp.pdf")
 
     @staticmethod
@@ -82,3 +92,79 @@ class Plotter:
         plt.title("Channel corruption rate")
         plt.legend(loc='best')
         plt.savefig(Plotter.BASE_DIR + Plotter.CORRUPTION_RATE_PLOT_NAME)
+
+
+class SingleNodePlotter:
+    BASE_DIR = "results/"
+
+    @staticmethod
+    def plot_throughput(node_data, title, filename):
+        plt.figure()
+        nodes = plt.subplot(111)
+        nodes.grid()
+        plt.xlabel("Total offered load [Mbps]")
+        plt.ylabel("Throughput at receiver [Mbps]")
+        plt.title(title)
+        for node in node_data:
+            nodes.plot(node.loads, node.throughputs, "o-", label="Node %d" % node.node)
+        box = nodes.get_position()
+        nodes.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+
+        # Put a legend to the right of the current axis
+        nodes.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+
+        plt.savefig(SingleNodePlotter.BASE_DIR + filename)
+
+    @staticmethod
+    def plot_collision_rate(node_data, title, filename):
+        plt.figure()
+        nodes = plt.subplot(111)
+        nodes.grid()
+        plt.xlabel("Total offered load [Mbps]")
+        plt.ylabel("Throughput at receiver [Mbps]")
+        plt.title(title)
+        for node in node_data:
+            nodes.plot(node.loads, node.coll_rates, "o-", label="Node %d" % node.node)
+        box = nodes.get_position()
+        nodes.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+
+        # Put a legend to the right of the current axis
+        nodes.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+
+        plt.savefig(SingleNodePlotter.BASE_DIR + filename)
+
+    @staticmethod
+    def plot_drop_rate(node_data, title, filename):
+        plt.figure()
+        nodes = plt.subplot(111)
+        nodes.grid()
+        plt.xlabel("Total offered load [Mbps]")
+        plt.ylabel("Throughput at receiver [Mbps]")
+        plt.title(title)
+        for node in node_data:
+            nodes.plot(node.loads, node.drop_rates, "o-", label="Node %d" % node.node)
+        box = nodes.get_position()
+        nodes.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+
+        # Put a legend to the right of the current axis
+        nodes.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+
+        plt.savefig(SingleNodePlotter.BASE_DIR + filename)
+
+    @staticmethod
+    def plot_channel_corruption_rate(node_data, title, filename):
+        plt.figure()
+        nodes = plt.subplot(111)
+        nodes.grid()
+        plt.xlabel("Total offered load [Mbps]")
+        plt.ylabel("Throughput at receiver [Mbps]")
+        plt.title(title)
+        for node in node_data:
+            nodes.plot(node.loads, node.corr_rates, "o-", label="Node %d" % node.node)
+        box = nodes.get_position()
+        nodes.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+
+        # Put a legend to the right of the current axis
+        nodes.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+
+        plt.savefig(SingleNodePlotter.BASE_DIR + filename)
