@@ -82,10 +82,10 @@ class AnalysisManager:
         trivial_disk = self._analyze_sub_folder(self.TRIVIAL_DISK_FOLDER)
         trivial_prob = self._analyze_sub_folder(self.TRIVIAL_PROB_FOLDER)
         simple_disk = {
-            0.0: self._analyze_sub_folder(self.SIMPLE_DISK_00),
-            0.25: self._analyze_sub_folder(self.SIMPLE_DISK_25),
-            0.5: self._analyze_sub_folder(self.SIMPLE_DISK_50),
-            0.75: self._analyze_sub_folder(self.SIMPLE_DISK_75),
+            0.0: self._analyze_sub_folder(self.SIMPLE_DISK_00)
+            # 0.25: self._analyze_sub_folder(self.SIMPLE_DISK_25),
+            # 0.5: self._analyze_sub_folder(self.SIMPLE_DISK_50),
+            # 0.75: self._analyze_sub_folder(self.SIMPLE_DISK_75),
         }
         simple_prob = {
             0.0: self._analyze_sub_folder(self.SIMPLE_PROB_00),
