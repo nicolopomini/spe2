@@ -175,13 +175,13 @@ class Node(Module):
             assert(len(self.queue) == 0)
             # if current state is IDLE and there are no packets in the queue, we
             # can start transmitting if we are using ALOHA
-            #if self.protocol == Node.ALOHA:
-            self.transmit_packet(packet_size)
-            self.state = Node.TX
-            self.logger.log_state(self, Node.TX)
+            if self.protocol == Node.ALOHA:
+                self.transmit_packet(packet_size)
+                self.state = Node.TX
+                self.logger.log_state(self, Node.TX)
             # otherwise, sense the channel
-            #else:
-            #    self.enter_sensing()
+            else:
+                self.enter_sensing()
         else:
             # if we are either transmitting, receiving or waiting to transmit, packet must be queued
             if self.queue_size == 0 or len(self.queue) < self.queue_size:
