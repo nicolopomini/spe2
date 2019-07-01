@@ -127,7 +127,7 @@ class SingleNodePlotter:
         nodes = plt.subplot(111)
         nodes.grid()
         plt.xlabel("Total offered load [Mbps]")
-        plt.ylabel("Throughput at receiver [Mbps]")
+        plt.ylabel("Packet collision rate at the receiver")
         plt.title(title)
         for node in node_data:
             nodes.plot(node.loads, node.coll_rates, "o-", label="Node %d" % node.node)
@@ -145,7 +145,7 @@ class SingleNodePlotter:
         nodes = plt.subplot(111)
         nodes.grid()
         plt.xlabel("Total offered load [Mbps]")
-        plt.ylabel("Throughput at receiver [Mbps]")
+        plt.ylabel("Packet drop rate at the sender")
         plt.title(title)
         for node in node_data:
             nodes.plot(node.loads, node.drop_rates, "o-", label="Node %d" % node.node)
@@ -163,7 +163,7 @@ class SingleNodePlotter:
         nodes = plt.subplot(111)
         nodes.grid()
         plt.xlabel("Total offered load [Mbps]")
-        plt.ylabel("Throughput at receiver [Mbps]")
+        plt.ylabel("Channel corruption rate")
         plt.title(title)
         for node in node_data:
             nodes.plot(node.loads, node.corr_rates, "o-", label="Node %d" % node.node)
