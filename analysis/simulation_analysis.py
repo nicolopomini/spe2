@@ -220,6 +220,8 @@ class NodeData:
         #Corrupted packets / all the incoming packets
         :return: the collision rate
         """
+        if self._incoming == 0:
+            return 0
         return self._corrupted * 1.0 / self._incoming
 
     def drop_rate(self):
@@ -227,6 +229,8 @@ class NodeData:
         Ratio of packets dropped at the queue over total generated
         :return: the drop rate
         """
+        if self._generated == 0:
+            return 0
         return self._dropped * 1.0 / self._generated
 
     def channel_corruption_rate(self):
@@ -235,6 +239,8 @@ class NodeData:
         Of course, it does not make sense with disk reception
         :return: channel corruption rate
         """
+        if self._incoming == 0:
+            return 0
         return self._corrupted_by_channel * 1.0 / self._incoming
 
 

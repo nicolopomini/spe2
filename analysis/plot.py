@@ -37,7 +37,7 @@ class Plotter:
         plt.plot(load, aloha_drop, "o-", label="Aloha")
         plt.plot(load, trivial_drop, "o-", label="Trivial")
         for persistence in simple_drop:
-            plt.plot(load, simple_drop[persistence].drop_rate, "o-", label="Simple with p = %2f" % persistence)
+            plt.plot(load, simple_drop[persistence].drop_rate, "o-", label="Simple with p = %.2f" % persistence)
         plt.xlabel("Total offered load [Mbps]")
         plt.ylabel("Packet drop rate at the sender")
         plt.title("Packet drop rate")
@@ -51,7 +51,7 @@ class Plotter:
         plt.plot(load, aloha_coll, "o-", label="Aloha")
         plt.plot(load, trivial_coll, "o-", label="Trivial")
         for persistence in simple_coll:
-            plt.plot(load, simple_coll[persistence].collision_rate, "o-", label="Simple with p = %2f" % persistence)
+            plt.plot(load, simple_coll[persistence].collision_rate, "o-", label="Simple with p = %.2f" % persistence)
         plt.xlabel("Total offered load [Mbps]")
         plt.ylabel("Packet collision rate at the receiver")
         plt.title("Collision rate")
@@ -86,7 +86,7 @@ class Plotter:
         plt.plot(load, aloha_corr, "o-", label="Aloha")
         plt.plot(load, trivial_corr, "o-", label="Trivial")
         for persistence in simple_corr:
-            plt.plot(load, simple_corr[persistence].corruption_rate, "o-", label="Simple with p = %2f" % persistence)
+            plt.plot(load, simple_corr[persistence].corruption_rate, "o-", label="Simple with p = %.2f" % persistence)
         plt.xlabel("Total offered load [Mbps]")
         plt.ylabel("Channel corruption rate")
         plt.title("Channel corruption rate")
@@ -101,7 +101,13 @@ class SingleNodePlotter:
     def plot_throughput(node_data, title, filename):
         plt.figure()
         nodes = plt.subplot(111)
-        nodes.grid()
+        # change grid density
+        thin_rows = [i * 1.0 / 100 for i in range(27)]
+        thick_rows = [i * 1.0 / 100 for i in range(0, 26, 5)]
+        nodes.set_yticks(thick_rows)
+        nodes.set_yticks(thin_rows, minor=True)
+        nodes.grid(which='major')
+        nodes.grid(which='minor', alpha=0.2)
         plt.xlabel("Total offered load [Mbps]")
         plt.ylabel("Throughput at receiver [Mbps]")
         plt.title(title)
