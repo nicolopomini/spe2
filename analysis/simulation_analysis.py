@@ -10,7 +10,7 @@ class SimulationGroupFolder:
     Each group of simulations in contained in the same folder.
     This class provides the method to handle the folder and to get results
     """
-    def __init__(self, folder_path) -> None:
+    def __init__(self, folder_path):
         self.folder_path = folder_path
         if not self.folder_path.endswith("/"):
             self.folder_path += "/"
@@ -127,7 +127,7 @@ class SingleSimulation:
         self.inter_arrival = int(info[1])
         self.seed = int(seed_format[0])
         df = pd.read_csv(self.folder_path + self.file_name)
-        #  pre compute all the information needed for the evaluation
+        # pre compute all the information needed for the evaluation
         self._n = len(df['dst'].unique())
         self._simulation_time = max(df['time'])
         self._received = df.loc[df["event"] == Log.LOG_RECEIVED]
@@ -249,7 +249,7 @@ class SingleNodeAnalysis:
     Handle a single simulation file, computing the metrics for each single node
     """
 
-    def __init__(self, folder_path, file_name) -> None:
+    def __init__(self, folder_path, file_name):
         self.folder_path = folder_path
         if not self.folder_path.endswith("/"):
             self.folder_path += "/"

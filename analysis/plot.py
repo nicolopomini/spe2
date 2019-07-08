@@ -102,8 +102,8 @@ class SingleNodePlotter:
         plt.figure()
         nodes = plt.subplot(111)
         # change grid density
-        thin_rows = [i * 1.0 / 100 for i in range(27)]
-        thick_rows = [i * 1.0 / 100 for i in range(0, 26, 5)]
+        thin_rows = [i * 1.0 / 100 for i in range(40)]
+        thick_rows = [i * 1.0 / 100 for i in range(0, 41, 5)]
         nodes.set_yticks(thick_rows)
         nodes.set_yticks(thin_rows, minor=True)
         nodes.grid(which='major')
