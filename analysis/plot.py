@@ -19,7 +19,7 @@ class Plotter:
         sub.plot(load, aloha_throughput, "o-", label="Aloha")
         sub.plot(load, trivial_throughput, "o-", label="Trivial")
         for persistence in simple_throughput:
-            sub.plot(load, simple_throughput[persistence].throughput, "o-", label="Simple, p = %2f" % persistence)
+            sub.plot(load, simple_throughput[persistence].throughput, "o-", label="Simple, p = %.2f" % persistence)
         plt.xlabel("Total offered load [Mbps]")
         plt.ylabel("Throughput at receiver [Mbps]")
         plt.title(title)
