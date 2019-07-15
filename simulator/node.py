@@ -106,6 +106,8 @@ class Node(Module):
         assert (self.persistence is None or (0.0 <= self.persistence <= 1.0))
         # carrier sense event
         self.wt_timeout = None
+        # skip sensing when coming from IDLE, in case of sensing protocols
+        self.skip_sensing = config.skip_sensing()
 
     def initialize(self):
         """
@@ -174,8 +176,8 @@ class Node(Module):
             # queue
             assert(len(self.queue) == 0)
             # if current state is IDLE and there are no packets in the queue, we
-            # can start transmitting if we are using ALOHA
-            if self.protocol == Node.ALOHA:
+            # can start transmitting if we are using ALOHA, or also if we want to skip the sensing phase
+            if self.protocol == Node.ALOHA or self.skip_sensing:
                 self.transmit_packet(packet_size)
                 self.state = Node.TX
                 self.logger.log_state(self, Node.TX)

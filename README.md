@@ -23,9 +23,11 @@ This module is expecting to find the raw files of the outputs of the simulations
 
 Indeed, with the original reception model only Aloha, Trivial Carrier Sensing and Simple Carrier Sensing with p = 0 are simulated. With the probabilistic reception model, all the configurations are simulated.
 
+Another parameter is added to the `config.json` file, called `skip_sensing` and accepting a boolean value. If set to true, it allows a node with a sensing protocol to skip the sensing phase when coming from the IDLE state - see the report for more details about this behaviour.
+
 This module uses `matplotlib` and `Pandas` for its operations. To install them, just run `pip install -r requirements.txt`.
 
-To reproduce the results, the script `run_simulations.sh` runs all the simulations and produces the plots. Running `sh run_simulations.sh` is possible to obtain the results in the report.
+To reproduce the results, the script `run_simulations.sh` runs all the simulations and produces the plots. Running `sh run_simulations.sh` is possible to obtain the results in the report, manually varying the `skip_sensing` value to change the behaviour of the nodes.
 To clean the results, removing the plots and the raw data, is possible to use the `cleaner.sh` script. Just run `sh cleaner.sh`.
 
 The analysis script need to export the simulator path in the Pythonpath. To launch it, do the following:

@@ -65,6 +65,8 @@
 				[15.207,19.929]
 			]
 		],
+        // set to true to skip carrier sensing when coming from IDLE state (for sensing protocols)
+        "skip_sensing": false,
 		// log file name using configuration parameters
 		"output" : "output_{interarrival.lambda}_{seed}.csv"
 	}

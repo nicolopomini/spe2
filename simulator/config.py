@@ -29,6 +29,8 @@ class Config:
 
     # output file name parameter
     OUTPUT = "output"
+    # skip sensing parameter, only for sensing protocols
+    SKIP_SENSING = "skip_sensing"
 
     def __init__(self, config_file, section):
         """
@@ -57,6 +59,16 @@ class Config:
         self.run_number = 0
         # compute the output file name for run number 0
         self.compute_output_file_name()
+
+    def skip_sensing(self):
+        """
+        Get the flag to skip the sensing procedure when coming from IDLE state, for sensing protocols
+        :return: True if the sensing phase is skipped, False otherwise
+        """
+        if self.SKIP_SENSING in self.cfg[self.section]:
+            return self.cfg[self.section][self.SKIP_SENSING]
+        else:
+            return False
 
     def map_parameters(self):
         """
