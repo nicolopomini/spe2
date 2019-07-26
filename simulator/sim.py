@@ -97,7 +97,10 @@ class Sim:
         self.persistence = persistence
         # in case of simple carrier sensing, the persistence must be set
         if self.protocol == self.SIMPLE_CARRIER_SENSING and self.persistence is None:
-            print("With Simple Carrier Sensing, the persistence must be set")
+            print("Error, with Simple Carrier Sensing, the persistence must be set")
+            sys.exit(1)
+        if self.protocol == self.SIMPLE_CARRIER_SENSING and not (0.0 <= persistence <= 1.0):
+            print("Error, the persistence must be between 0 and 1. %f given" % persistence)
             sys.exit(1)
 
     def get_runs_count(self):
